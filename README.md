@@ -6,8 +6,8 @@ A complete rewrite of DevSound for Game Boy. Unfortunately, it is incompatible w
 ### General dependencies
 
 1. [RGBDS](https://github.com/gbdev/rgbds)
-2. An emulator of your choice (such as [BGB](https://bgb.bircd.org), [SameBoy](https://sameboy.github.io), [Emulicious](https://emulicious.net))
-  - VisualBoyAdvance is not supported as it fails to correctly emulate a hardware quirk that DevSound relies on
+2. An emulator of your choice (such as [BGB](https://bgb.bircd.org), [SameBoy](https://sameboy.github.io), or [Emulicious](https://emulicious.net))
+- VisualBoyAdvance is not supported as it fails to correctly emulate a hardware quirk that DevSound relies on
 
 ### Build instructions
 1. Open a command prompt and type `bash`
