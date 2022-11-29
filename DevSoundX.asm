@@ -304,6 +304,7 @@ sound_reset_transpose_global: macro
 ; PARAMETERS: [pointer]
 sound_set_arp_ptr: macro
     db      $8f
+    dw      \1
     endm
 
 ; Marks the end of the sound data for the current channel. (Any channel)
@@ -1226,13 +1227,12 @@ NUM_COMMANDS = (@ - .cmdtable) / 2
 	ld		[DSX_CH3_Transpose],a
 	jp		.getbyte
 
-.setarpptr  ; FIXME UNTESTED - potentially overridden by new note instrument reset?
-    ld      b,b
+.setarpptr
     pop     hl
     ld      a,[hl+]
-    ld      [DSX_CH\1_ArpPtr],a
+    ld      [DSX_CH\1_ArpResetPtr],a
     ld      a,[hl+]
-    ld      [DSX_CH\1_ArpPtr+1],a
+    ld      [DSX_CH\1_ArpResetPtr+1],a
     jp      .getbyte
 
 .dummyword
@@ -1918,21 +1918,21 @@ DSX_Wavetable:
 ; INSTRUMENT FORMAT: [volume pointer], [pulse pointer], [arp pointer], [pitch pointer]
 DSX_TestInstrument:
     dw  DSX_TestVolSequence
-    dw  DSX_TestArpSequence
+    dw  DSX_DummyTable
     dw  DSX_TestPulseSequence
     dw  DSX_TestPitchSequence
     dw  DSX_TestVolSequenceEcho,0,0,0
 
 DSX_TestInstrumentEcho:
     dw  DSX_TestVolSequence
-    dw  DSX_TestArpSequence
+    dw  DSX_DummyTable
     dw  DSX_TestPulseSequence
     dw  DSX_TestPitchSequence
     dw  DSX_TestVolSequenceEcho2,0,0,0
 
 DSX_TestInstrumentSustain:
     dw  DSX_TestVolSequenceHold
-    dw  DSX_TestArpSequence
+    dw  DSX_DummyTable
     dw  DSX_TestPulseSequence
     dw  DSX_TestPitchSequence
     dw  0,0,0,0
@@ -1984,9 +1984,8 @@ DSX_TestPulseSequence:
     db  0,1,1,1,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,seq_end
 
 DSX_TestArpSequence:
-    db  seq_end
-;:  db  0,seq_wait,4,12,seq_wait,4
-;   db  seq_loop,(:- -@)-1
+:   db  12,seq_wait,3,0,seq_wait,3
+    db  seq_loop,(:- -@)-1
 
 DSX_TestPitchSequence:
     db  8
@@ -2016,6 +2015,7 @@ DSX_TestSequence1:
     release 2
     note D_,4, 2
     release 2
+    sound_set_arp_ptr   DSX_TestArpSequence
     note E_,4, 2
     release 2
     note F_,4, 2
@@ -2025,6 +2025,7 @@ DSX_TestSequence1:
     release 2
     note A_,4, 2
     release 2
+    sound_set_arp_ptr   DSX_TestArpSequence
     note B_,4, 2
     release 2
     note C_,5, 2
