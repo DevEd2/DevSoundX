@@ -28,63 +28,68 @@ sizeof_DSX_ChannelStruct = 0
 
 DSX_ChannelStruct:  macro
 DSX_CH\1_Start:
-DSX_CH\1_SeqPtr:        dw
-DSX_CH\1_ReturnPtr:     dw
-DSX_CH\1_VolPtr:        dw
-DSX_CH\1_ArpPtr:        dw
+DSX_CH\1_SeqPtr:            dw
+DSX_CH\1_ReturnPtr:         dw
+DSX_CH\1_VolPtr:            dw
+DSX_CH\1_ArpPtr:            dw
 DSX_CH\1_NoisePtr:
 DSX_CH\1_WavePtr:   
-DSX_CH\1_PulsePtr:      dw
+DSX_CH\1_PulsePtr:          dw
 if \1 != 4
-DSX_CH\1_PitchPtr:      dw
+DSX_CH\1_PitchPtr:          dw
 endc
-DSX_CH\1_LoopCount:     db
-DSX_CH\1_VolDelay:      db
-DSX_CH\1_ArpDelay:      db
+DSX_CH\1_LoopCount:         db
+DSX_CH\1_VolDelay:          db
+DSX_CH\1_ArpDelay:          db
 DSX_CH\1_NoiseDelay:
 DSX_CH\1_WaveDelay:
-DSX_CH\1_PulseDelay:    db
+DSX_CH\1_PulseDelay:        db
 if \1 != 4
-DSX_CH\1_PitchDelay:    db
+DSX_CH\1_PitchDelay:        db
 endc
-DSX_CH\1_Tick:          db
-DSX_CH\1_Note:          db
-DSX_CH\1_Timer:         db
-DSX_CH\1_ArpTranspose:  db
+DSX_CH\1_Tick:              db
+DSX_CH\1_Note:              db
+DSX_CH\1_Timer:             db
+DSX_CH\1_ArpTranspose:      db
 if \1 != 4
-DSX_CH\1_PitchMode:     db  ; 0 = normal, 1 = slide up, 2 = slide down, 3 = portamento, bit 7 = monty flag
-DSX_CH\1_VibOffset:     dw
-DSX_CH\1_SlideOffset:   dw
-DSX_CH\1_SlideTarget:   dw
-DSX_CH\1_SlideSpeed:    db
-DSX_CH\1_NoteTarget:    db
-DSX_CH\1_Transpose:     db
+DSX_CH\1_PitchMode:         db  ; 0 = normal, 1 = slide up, 2 = slide down, 3 = portamento, bit 7 = monty flag
+DSX_CH\1_VibOffset:         dw
+DSX_CH\1_SlideOffset:       dw
+DSX_CH\1_SlideTarget:       dw
+DSX_CH\1_SlideSpeed:        db
+DSX_CH\1_NoteTarget:        db
+DSX_CH\1_Transpose:         db
 endc
-DSX_CH\1_VolResetPtr:   dw
-DSX_CH\1_ArpResetPtr:   dw
+DSX_CH\1_VolResetPtr:       dw
+DSX_CH\1_VolReleasePtr:     dw
+DSX_CH\1_ArpResetPtr:       dw
+DSX_CH\1_ArpReleasePtr:     dw
 DSX_CH\1_WaveResetPtr:
-DSX_CH\1_PulseResetPtr: dw
+DSX_CH\1_PulseResetPtr:     dw
+DSX_CH\1_WaveReleasePtr:
+DSX_CH\1_PulseReleasePtr:   dw
 if \1 != 4
-DSX_CH\1_PitchResetPtr: dw
+DSX_CH\1_PitchResetPtr:     dw
+DSX_CH\1_PitchReleasePtr:   dw
 endc
 if \1 == 3
-DSX_CH\1_SamplePointer: dw
-DSX_CH\1_SampleLength:  dw
+DSX_CH\1_SamplePointer:     dw
+DSX_CH\1_SampleLength:      dw
 endc
 if \1 == 3
-DSX_CH\1_NRX0:          db
+DSX_CH\1_NRX0:              db
 else
-DSX_CH\1_ChannelVol:    db
+DSX_CH\1_ChannelVol:        db
 endc
-DSX_CH\1_EchoPos:       db
-DSX_CH\1_FirstNote:     db
+DSX_CH\1_EchoPos:           db
+DSX_CH\1_FirstNote:         db
 DSX_CH\1_CurrentWave:
-DSX_CH\1_NRX1:          db
-DSX_CH\1_CurrentNRX2:   db
+DSX_CH\1_NRX1:              db
+DSX_CH\1_CurrentNRX2:       db
 DSX_CH\1_PreviousWave:
-DSX_CH\1_PreviousNRX2:  db
-DSX_CH\1_NRX3:          db
-DSX_CH\1_NRX4:          db
+DSX_CH\1_PreviousNRX2:      db
+DSX_CH\1_NRX3:              db
+DSX_CH\1_NRX4:              db
 DSX_CH\1_End:
 endm
 
@@ -165,6 +170,10 @@ rest:               macro
 
 wait:               macro
     db      $7e,\1
+    endm
+
+release:            macro
+    db      $7d,\1
     endm
 
 ; PARAMETERS: [note, octave, length]
@@ -765,6 +774,8 @@ DevSoundX_UpdateChannel\1:
     jp      z,.isrest
     cp      $7e
     jp      z,.iswait
+    cp      $7d
+    jp      z,.isrelease
 .isnote
     ld      d,a
     ld      a,[DSX_CH\1_Note]
@@ -896,6 +907,56 @@ DevSoundX_UpdateChannel\1:
     ld      a,[hl+]
     ld      [DSX_CH\1_Timer],a
     jp      .donech\1
+.isrelease
+    ld      a,[hl+]
+    ld      [DSX_CH\1_Timer],a
+    
+    push    hl
+    ld      hl,DSX_CH\1_VolReleasePtr
+    ld      a,[hl+]
+    ld      b,a
+    or      [hl]
+    jr      z,:+
+    ld      b,b
+    ld      a,b
+    ld      [DSX_CH\1_VolPtr],a
+    ld      a,[hl+]
+    ld      [DSX_CH\1_VolPtr+1],a
+:    
+    ld      hl,DSX_CH\1_ArpReleasePtr
+    ld      a,[hl+]
+    ld      b,a
+    or      [hl]
+    jr      z,:+
+    ld      a,b
+    ld      [DSX_CH\1_ArpPtr],a
+    ld      a,[hl+]
+    ld      [DSX_CH\1_ArpPtr+1],a
+:    
+    ld      hl,DSX_CH\1_PulseReleasePtr
+    ld      a,[hl+]
+    ld      b,a
+    or      [hl]
+    jr      z,:+
+    ld      a,b
+    ld      [DSX_CH\1_PulsePtr],a
+    ld      a,[hl+]
+    ld      [DSX_CH\1_PulsePtr+1],a
+:    
+    if \1 != 4
+        ld      hl,DSX_CH\1_PitchReleasePtr
+        ld      a,[hl+]
+        ld      b,a
+        or      [hl]
+        jr      z,:+
+        ld      a,b
+        ld      [DSX_CH\1_PitchPtr],a
+        ld      a,[hl+]
+        ld      [DSX_CH\1_PitchPtr+1],a
+:    
+    endc
+    pop     hl
+    jp      .donech\1
     
 .iscommand
     cp      $ff
@@ -972,8 +1033,29 @@ NUM_COMMANDS = (@ - .cmdtable) / 2
         ld      [DSX_CH\1_PitchResetPtr],a
         ld      a,[hl+]
         ld      [DSX_CH\1_PitchResetPtr+1],a
+    else
+        inc     hl
+        inc     hl
     endc
     
+    ld      a,[hl+]
+    ld      [DSX_CH\1_VolReleasePtr],a
+    ld      a,[hl+]
+    ld      [DSX_CH\1_VolReleasePtr+1],a
+    ld      a,[hl+]
+    ld      [DSX_CH\1_ArpReleasePtr],a
+    ld      a,[hl+]
+    ld      [DSX_CH\1_ArpReleasePtr+1],a
+    ld      a,[hl+]
+    ld      [DSX_CH\1_PulseReleasePtr],a
+    ld      a,[hl+]
+    ld      [DSX_CH\1_PulseReleasePtr+1],a
+    if \1 != 4
+        ld      a,[hl+]
+        ld      [DSX_CH\1_PitchReleasePtr],a
+        ld      a,[hl+]
+        ld      [DSX_CH\1_PitchReleasePtr+1],a
+    endc
     pop     hl
     inc     hl
     jp      .getbyte
@@ -1840,59 +1922,84 @@ DSX_TestInstrument:
     dw  DSX_TestArpSequence
     dw  DSX_TestPulseSequence
     dw  DSX_TestPitchSequence
+    dw  DSX_TestVolSequenceEcho,0,0,0
+
+DSX_TestInstrumentEcho:
+    dw  DSX_TestVolSequence
+    dw  DSX_TestArpSequence
+    dw  DSX_TestPulseSequence
+    dw  DSX_TestPitchSequence
+    dw  DSX_TestVolSequenceEcho2,0,0,0
 
 DSX_TestInstrumentSustain:
     dw  DSX_TestVolSequenceHold
     dw  DSX_TestArpSequence
     dw  DSX_TestPulseSequence
     dw  DSX_TestPitchSequence
+    dw  0,0,0,0
 
 ;DSX_TestInstrumentEcho:
 ;    dw  DSX_TestVolSequenceEcho
 ;    dw  DSX_TestArpSequence
 ;    dw  DSX_TestPulseSequence
 ;    dw  DSX_TestPitchSequence
+;    dw  0,0,0,0
 
 DSX_TestInstrumentWave:
     dw  DSX_TestWaveVolSequence
     dw  DSX_DummyTable
     dw  DSX_TestWaveSequence
     dw  DSX_DummyPitch
+    dw  0,0,0,0
 
 DSX_TestInstrumentNoise1:
     dw  DSX_TestVolSequence
     dw  DSX_DummyTable
     dw  DSX_Noise0Table
     dw  DSX_DummyTable
+    dw  0,0,0,0
     
 DSX_TestInstrumentNoise2:
     dw  DSX_TestVolSequence
     dw  DSX_DummyTable
     dw  DSX_Noise1Table
     dw  DSX_DummyTable
+    dw  0,0,0,0
 
 DSX_TestVolSequence:
-    db  15,14,13,12,11,10,9,8,$80|3,$80|3,$80|3,$80|2,$80|2,$80|2,$80|2,$80|1,$80|1,$80|1,$80|1,$80|1,0,seq_end
+    db  15,14,13,12,11,10,9,8,seq_end
+
+DSX_TestVolSequenceEcho:
+    db  3,3,3,2,2,2,2,1,1,1,1,1,0,seq_end
+
+DSX_TestVolSequenceEcho2:
+    db  $80|3,$80|3,$80|3,$80|2,$80|2,$80|2,$80|2,$80|1,$80|1,$80|1,$80|1,$80|1,0,seq_end
+
 DSX_TestVolSequenceHold:
     db  15,14,13,12,11,10,9,seq_end
-;DSX_TestVolSequenceEcho:
-;    db  6,6,6,5,5,5,4,4,4,3,3,3,3,2,2,2,2,1,1,1,1,1,0,seq_end
+
 DSX_TestWaveVolSequence:
     db  $20,$20,$20,$20,$20,$20,$20,$20,$80|$60,seq_end
+
 DSX_TestPulseSequence:
     db  0,1,1,1,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,seq_end
+
 DSX_TestArpSequence:
     db  seq_end
 ;:  db  0,seq_wait,4,12,seq_wait,4
 ;   db  seq_loop,(:- -@)-1
+
 DSX_TestPitchSequence:
     db  8
 :   db  1,2,2,1,0,-1,-2,-2,-1,0
     db  pitch_loop,(:- -@)-1
+
 DSX_Noise0Table:
     db  0,seq_end
+
 DSX_Noise1Table:
     db  1,seq_end
+
 DSX_TestWaveSequence:
     db  2,2,2,2,2,2,13,13,13,13,13,13,0,seq_end
 
@@ -1905,15 +2012,24 @@ DSX_TestSong:
     dw  DSX_TestSequence4
 
 DSX_TestSequence1:
-    sound_instrument DSX_TestInstrument
-:   note C_,4, 4
-    note D_,4, 4
-    note E_,4, 4
-    note F_,4, 4
-    note G_,4, 4
-    note A_,4, 4
-    note B_,4, 4
-    note C_,5, 4
+:   sound_instrument DSX_TestInstrument
+    note C_,4, 2
+    release 2
+    note D_,4, 2
+    release 2
+    note E_,4, 2
+    release 2
+    note F_,4, 2
+    release 2
+    sound_instrument DSX_TestInstrumentEcho
+    note G_,4, 2
+    release 2
+    note A_,4, 2
+    release 2
+    note B_,4, 2
+    release 2
+    note C_,5, 2
+    release 2
     rest 212
     sound_instrument DSX_TestInstrumentSustain
     note C_,4, 8
@@ -1955,12 +2071,6 @@ DSX_TestSequence1:
     note E_,5,1
     note C_,5,1
     sound_ret
-    
-;DSX_TestSequence2:
-;    sound_instrument DSX_TestInstrumentEcho
-;    rest 6
-;    sound_jump  :--
-;    sound_end
     
 DSX_TestSequence3:
     sound_instrument DSX_TestInstrumentWave
