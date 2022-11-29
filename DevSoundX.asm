@@ -917,7 +917,6 @@ DevSoundX_UpdateChannel\1:
     ld      b,a
     or      [hl]
     jr      z,:+
-    ld      b,b
     ld      a,b
     ld      [DSX_CH\1_VolPtr],a
     ld      a,[hl+]
