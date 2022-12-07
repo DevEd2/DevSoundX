@@ -7,7 +7,7 @@ A complete rewrite of DevSound for Game Boy. Unfortunately, it is incompatible w
 
 1. [RGBDS](https://github.com/gbdev/rgbds)
 2. An emulator of your choice (such as [BGB](https://bgb.bircd.org), [SameBoy](https://sameboy.github.io), or [Emulicious](https://emulicious.net))
-- VisualBoyAdvance is not supported as it fails to correctly emulate a hardware quirk that DevSound relies on
+- VisualBoyAdvance is not supported as it fails to correctly emulate a hardware quirk that DevSound X relies on.
 
 ### Build instructions
 1. Clone the repo: `git clone --recursive https://github.com/DevEd2/DevSoundX`
