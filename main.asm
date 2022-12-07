@@ -420,7 +420,11 @@ MainLoop:
     xor     a
 :   cp      [hl]
     jr      nz,:-
+    ld      a,%11100100
+    ldh     [rBGP],a
     call    DevSoundX_Update
+    ld      a,%00011011
+    ldh     [rBGP],a
     ld      a,[hl]
     ld      [CurrentRaster],a
     ld      e,a

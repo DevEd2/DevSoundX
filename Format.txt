@@ -1,0 +1,286 @@
+THE HASTILY PUT-TOGETHER DEVSOUND X MUSIC FORMAT SPEC
+Version 0.1
+by DevEd
+
+=================================================================
+
+NOTE 1: All byte values are unsigned unless otherwise denoted.
+NOTE 2: All pointers are assumed to take 2 bytes.
+
+Section 1 - Music header format
+
+Each song requires a header, which consists of two parts - the
+song speed and the pointers to each channel's sequence data.
+
+The song speed comes first - two bytes representing the "odd"
+and "even" speeds. This works similarly to Deflemask or Furnace;
+the first speed value is used on odd music ticks and the second
+speed value is used on even song ticks. One byte is used per speed
+value, though currently the length is fixed to 2.
+
+Immediately following the song speed is four pointers to each
+channel's sequence data.
+
+There is no terminator for song headers; the header is expected
+to end after the CH4 sequence pointer.
+
+--------
+
+Section 2 - Instrument format
+
+Instrument definitions in DevSound X consist of two sets of four
+pointers to macro data for volume, arpeggio pulse width/waveform,
+and pitch. The first set is used when a note is first triggered,
+while the second set is used when a note is released.
+
+For the second set, no change in a macro will occur on note
+release if its release pointer is set to zero; the "first trigger"
+macro will continue to be used in this case.
+
+There is no terminator for instrument definitions; instruments
+definitions are expected to end after all 8 pointers are
+defined.
+
+--------
+
+Section 3 - Macro format
+
+DevSound X has four distinct types of macro: Volume, arpeggio,
+sound type, and pitch. Each byte can represent either a macro
+value or a command.
+
+For volume macros, each macro value represents a single 4-bit volume
+value for the current sound channel, with an exception for CH3
+(where volume levels are $00 = 0%, $60 = 25%, $40 = 50%, and
+$20 = 100%). Additionally, bit 7 of the volume level is used as
+an echo flag - if it is set, the current sound pitch is overridden
+by the pitch of the note that played two notes prior to the current,
+giving an echo effect.
+
+For arpeggio macros, each macro value is interpreted as follows:
+- If the value is from 0-63 ($00-$3f), it will be added to the base
+  note.
+- If the value is from 64-127 ($00-$7f), the value is subtracted by
+  64 and then subtracted from the base note.
+- If the value is from 128-253 ($80-$fd), the value overrides the
+  base note. This is equivalent to Deflemask's fixed arpeggio option.
+
+For sound type macros, each macro value is interpreted as follows:
+- For sound channels 1 and 2, the value is used to determine the
+  note's current pulse width (0 = 12.5%, 1 = 25%, 2 = 50%, 3 = 75%),
+- For sound channel 3, each entry is used as a wavetable ID. (See
+  Section 4 for more details.)
+- For sound channel 4, each entry is used to determine the noise
+  length. 0 is for long noise, and 1 is for short noise.
+
+For pitch macros, the first macro value is used as the initial delay
+for the pitch macro. After the delay, each macro value represents an
+8-bit signed pitch offset. Pitch macros are not applicable for sound
+channel 4.
+
+For all macro types except pitch, command seq_end ($FF) marks the
+end of the macro. The last read value will be held until a new note
+is triggered in this case. Any byte after the command will be ignored.
+For pitch macros, the end is instead denoted with the pitch_end
+command ($7F).
+
+For all macro types except pitch, command seq_loop ($FE) allows you
+to set a loop point. The byte immediately following is used as the
+number of bytes to jump backwards in the macro (relative to the
+command byte). Any data after the command will be ignored. For pitch
+macros, the loop point is instead denoted with the pitch_loop ($80)
+command.
+
+For all macro types except pitch, command seq_wait ($FE) will allow
+you to specify a number of engine ticks to wait before the next macro
+value is read. The byte immediately following the command byte is used
+as the delay. After this command completes, the next macro value will
+be read as normal. This command does not have an equivalent for pitch
+macros.
+
+--------
+
+Section 4 - Wavetable format
+
+For wavetables, DevSound X uses a block of wave data. Each wave
+in the list is stored directly; there should be no data in between
+the waves, and each wave must be 16 bytes long.
+
+There is no terminator for the wavetable list; it is expected to
+be a multiple of 16 bytes long. Out-of-bounds indexing of the
+wavetable list will result in unrelated data being interpreted as
+waveform data, which may not be desirable.
+
+--------
+
+Section 5 - Sequence format
+
+Sequences can be thought of as the "score" for a song in DevSound X
+format. Each channel has its own sequence, which consists of a series
+of commands that define the song. DevSound X uses a set of macros in
+order to make programming sequences a bit easier. See below for the
+full list of commands.
+
+--------
+
+Appendix - Command list
+
+!! THIS LIST IS SUBJECT TO CHANGE !!
+
+[note number] - note (All channels)
+Plays a note with a given length. This command doesn't have its own ID,
+but rather uses the note number instead. Internally encoded as follows:
+1 byte - note number (note + (octave * 12))
+1 byte - note length
+PARAMETERS:
+  1. Note (C_, C#, D_, D#, E_, F_, F#, G_, G#, A_, A#, B_) (1 byte)
+  2. Octave (2 - 8) (1 byte)
+  3. Length (1 byte)
+
+$7d - release (All channels)
+Release a held note and wait a given number of song ticks.
+PARAMETERS:
+  1. Length (1 byte)
+
+$7e - wait (All channels)
+Wait a given number of song ticks.
+PARAMETERS:
+  1. Length (1 byte)
+  
+$7f - rest (All channels)
+Inserts a rest with a given length.
+PARAMETERS:
+  1. Length (1 byte)
+
+$80 - sound_instrument (All channels)
+Sets the instrument for the current sound channel.
+PARAMETERS:
+  1. Pointer to instrument definition
+
+$81 - sound_jump (All channels)
+Sets the current sound channel's sequence pointer.
+PARAMETERS:
+  1. Pointer to sequence data
+
+$82 - sound_loop (All channels)
+Loop a section of sequence data.
+PARAMETERS:
+  1. Number of loops (1 byte)
+  2. Loop pointer
+
+$83 - sound_call (All channels)
+Same as sound_jump, but saves the current sequence pointer beforehand.
+PARAMETERS:
+  1. Pointer to sequence data
+WARNING: Using this command again will overwrite the stored sequence
+pointer for the current sound channel!
+
+$84 - sound_ret (All channels)
+Jumps to the saved sequence pointer.
+PARAMETERS: (none)
+NOTE: Any sequence data after a sound_ret command will be ignored.
+WARNING: Using this command without having used sound_call at least once
+will result in undefined behavior!
+
+$85 - sound_slide_up (CH1, CH2, CH3)
+Initiates an upward pitch bend with a given speed.
+PARAMETERS:
+  1. Speed (1 byte)
+NOTE: Pitch slides (except portamento) are reset on each new note.
+
+$86 - sound_slide_down (CH1, CH2, CH3)
+Initiates a downward pitch bend with a given speed.
+PARAMETERS:
+  1. Speed (1 byte)
+NOTE: Pitch slides (except portamento) are reset on each new note.
+
+$87 - sound_portamento (CH1, CH2, CH3)
+Initiates a pitch bend to the next note.
+PARAMETERS:
+  1. Speed (1 byte)
+NOTE: Portamento remains active until the slide is complete.
+
+$88 - sound_toggle_monty (CH1, CH2, CH3)
+Enables or disables Monty Mode. This will cause pitch slides to rapidly
+alternate between the base pitch and the current slide pitch.
+PARAMETERS: (none)
+NOTE: Monty mode remains active until it is disabled by another
+sound_toggle_monty command.
+BUG: Currently portamento disables monty mode when it is finished.
+
+$89 - sound_sample (CH3 only)
+Plays a 1920khz sample.
+PARAMETERS:
+  1. Pointer to sample data
+  2. Length (1 byte)
+NOTE: Sample length works the same way as regular note length.
+
+$8a - sound_volume (CH1, CH2, CH4)
+Sets the volume level of the current sound channel.
+PARAMETERS:
+  1. Volume (0 - F) (1 byte)
+
+$8b - sound_transpose (CH1, CH2, CH3)
+Transpose the current sound channel by the given number of semitones.
+PARAMETERS:
+  1. Number of semitones (Signed byte)
+
+$8c - sound_transpose_global (Any channel)
+Transpose ALL sound channels by the given number of semitones.
+PARAMETERS:
+  1. Number of semitones (Signed byte)
+NOTE: This command can be used on sound channel 4, but does not affect it.
+WARNING: This will override any existing per-channel transposition!
+
+$8d - sound_reset_transpose
+Reset the transposition for the current sound channel.
+PARAMETERS: none
+
+$8e - sound_reset_transpose_global (Any channel)
+Reset the transposition for ALL sound channels.
+PARAMETERS: (none)
+NOTE: This command can be used on sound channel 4, but does not affect it.
+
+$8f - sound_set_arp_ptr (Any channel)
+Set the arpeggio pointer for the current sound channel.
+PARAMETERS:
+  1. Pointer to arpeggio macro
+NOTE: This command overrides the current instrument's arpeggio macro.
+
+$ff - sound_end
+Marks the end of a block of sequence data.
+PARAMETERS: (none)
+NOTE: Any sequence data after a sound_end command will be ignored.
+
+
+== END OF DOCUMENT ==
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+𝓫𝓮𝓹𝓲𝓼

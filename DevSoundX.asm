@@ -183,13 +183,13 @@ note:               macro
     
 ; PARAMETERS: [length]
 sfix:               macro
-    note    C_,0,\1
+    note    C_,2,\1
     endm
 
 ; PARAMETERS: [instrument, length]
 sfixins:            macro
     sound_instrument \1
-    note    C_,0,\2
+    note    C_,2,\2
     endm
 
 ; Specifies instrument to use for current channel (Any channel)
@@ -568,7 +568,7 @@ DevSoundX_UpdateRegisters:
     jr      z,.skipwavemus
     ld      a,b
     ld      [DSX_CH3_PreviousWave],a
-    ld      hl,DSX_Wavetable
+    ld      hl,DSX_Wavetables
     swap    a
     ld      b,a
     and     $f0
@@ -1893,7 +1893,7 @@ db      "$$endcode$$"
 ; ================================================================
 
 DSX_DefaultWave:
-DSX_Wavetable:
+DSX_Wavetables:
     db  $00,$11,$22,$33,$44,$55,$66,$77,$88,$99,$aa,$bb,$cc,$dd,$ee,$ff ; sawtooth
     db  $01,$23,$45,$67,$89,$ab,$cd,$ef,$fe,$dc,$ba,$98,$76,$54,$32,$10 ; triangle
     db  $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$00,$00,$00,$00,$00,$00,$00,$00 ; 50% pulse
@@ -1952,14 +1952,14 @@ DSX_TestInstrumentWave:
     dw  0,0,0,0
 
 DSX_TestInstrumentNoise1:
-    dw  DSX_TestVolSequence
+    dw  DSX_TestNoiseVolSequence
     dw  DSX_DummyTable
     dw  DSX_Noise0Table
     dw  DSX_DummyTable
     dw  0,0,0,0
     
 DSX_TestInstrumentNoise2:
-    dw  DSX_TestVolSequence
+    dw  DSX_TestNoiseVolSequence
     dw  DSX_DummyTable
     dw  DSX_Noise1Table
     dw  DSX_DummyTable
@@ -1967,6 +1967,9 @@ DSX_TestInstrumentNoise2:
 
 DSX_TestVolSequence:
     db  15,14,13,12,11,10,9,8,seq_end
+
+DSX_TestNoiseVolSequence:
+    db  15,13,11,9,7,6,5,4,3,3,2,2,1,1,1,0,seq_end
 
 DSX_TestVolSequenceEcho:
     db  3,3,3,2,2,2,2,1,1,1,1,1,0,seq_end
@@ -1999,7 +2002,7 @@ DSX_Noise1Table:
     db  1,seq_end
 
 DSX_TestWaveSequence:
-    db  2,2,2,2,2,2,13,13,13,13,13,13,0,seq_end
+    db  18,seq_end
 
 DSX_TestSong:
     db  4,4
@@ -2015,17 +2018,15 @@ DSX_TestSequence1:
     release 2
     note D_,4, 2
     release 2
-    sound_set_arp_ptr   DSX_TestArpSequence
     note E_,4, 2
     release 2
     note F_,4, 2
     release 2
-    sound_instrument DSX_TestInstrumentEcho
+    sound_set_arp_ptr DSX_TestArpSequence
     note G_,4, 2
     release 2
     note A_,4, 2
     release 2
-    sound_set_arp_ptr   DSX_TestArpSequence
     note B_,4, 2
     release 2
     note C_,5, 2
