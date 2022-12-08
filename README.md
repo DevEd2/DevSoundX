@@ -1,4 +1,4 @@
-# DevSoundX
+# DevSound X
 A complete rewrite of DevSound for Game Boy. Unfortunately, it is incompatible with previous versions of DevSound, but it makes up for it with new features and significantly reduced CPU load.
 
 ## Building the source code
