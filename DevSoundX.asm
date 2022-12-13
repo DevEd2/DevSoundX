@@ -26,7 +26,7 @@ section "DevSound X RAM defines",wram0
 
 sizeof_DSX_ChannelStruct = 0
 
-DSX_ChannelStruct:  macro
+macro DSX_ChannelStruct
 DSX_CH\1_Start:
 DSX_CH\1_SeqPtr:            dw
 DSX_CH\1_ReturnPtr:         dw
@@ -164,51 +164,51 @@ A#  =   10
 B_  =   11
 
 ; PARAMETERS: [length]
-rest:               macro
+macro rest
     db      $7f,\1
     endm
 
-wait:               macro
+macro wait
     db      $7e,\1
     endm
 
-release:            macro
+macro release
     db      $7d,\1
     endm
 
 ; PARAMETERS: [note, octave, length]
-note:               macro
+macro note
     db      \1 + (12 * (\2 - 2)), \3
     endm
     
 ; PARAMETERS: [length]
-sfix:               macro
+macro sfix
     note    C_,2,\1
     endm
 
 ; PARAMETERS: [instrument, length]
-sfixins:            macro
+macro sfixins
     sound_instrument \1
     note    C_,2,\2
     endm
 
 ; Specifies instrument to use for current channel (Any channel)
 ; PARAMETERS: [pointer to instrument data]
-sound_instrument:   macro
+macro sound_instrument
     db      $80
     dw      \1
     endm
 
 ; Jump to another section of sound data (Any channel)
 ; PARAMETERS: [pointer to jump to]
-sound_jump:         macro
+macro sound_jump
     db      $81
     dw      \1
     endm
 
 ; Loop a block of sound data a specified number of times (Any channel)
 ; PARAMETERS: [number of loops], [return pointer]
-sound_loop:         macro
+macro sound_loop
     db      $82
     db      \1
     dw      \2
@@ -217,7 +217,7 @@ sound_loop:         macro
 ; Call a subsection of sound data (Any channel)
 ; PARAMETERS: [pointer of section to call]
 ; WARNING: Subsections cannot be nested!
-sound_call:         macro
+macro sound_call
     db      $83
     dw      \1
     endm
@@ -225,40 +225,40 @@ sound_call:         macro
 ; Return from a called sound data section (Any channel)
 ; PARAMETERS: none
 ; WARNING: Do not use outside of a subsection!
-sound_ret:          macro
+macro sound_ret
     db      $84
     endm
 
 ; Slide up (CH1, CH2, CH3)
 ; PARAMETERS: [speed]
-sound_slide_up:     macro
+macro sound_slide_up
     db      $85
     db      \1
     endm
 
 ; Slide down (CH1, CH2, CH3)
 ; PARAMETERS: [speed]
-sound_slide_down:   macro
+macro sound_slide_down
     db      $86
     db      \1
     endm
 
 ; Slide to a given note (CH1, CH2, CH3)
 ; PARAMETERS: [speed]
-sound_portamento:   macro
+macro sound_portamento
     db      $87
     db      \1
     endm
 
 ; Toggle "monty mode" (only applies pitch slides on even ticks) (CH1, CH2, CH3)
 ; PARAMETERS: none
-sound_toggle_monty: macro
+macro sound_toggle_monty
     db      $88
     endm
 
 ; Play a 1920hz sample (CH3 only)
 ; PARAMETERS: [pointer, length]
-sound_sample: macro
+macro sound_sample
     db      $89
     dw      \1
     db      \2
@@ -266,14 +266,14 @@ sound_sample: macro
 
 ; Set the volume for the current channel (CH1, CH2, CH4)
 ; PARAMETERS: [volume (0 - F)]
-sound_volume: macro
+macro sound_volume
     db      $8a
     db      \1
     endm
 
 ; Transpose the CURRENT channel up or down. (CH1, CH2, CH3)
 ; PARAMETERS: [number of semitones to transpose by]
-sound_transpose: macro
+macro sound_transpose
 	db		$8b
 	db		\1
 	endm
@@ -282,34 +282,41 @@ sound_transpose: macro
 ; PARAMETERS: [number of semitones to transpose by]
 ; NOTE: Can be used on CH4, but does not affect it.
 ; WARNING: Will override any existing per-channel transposition!
-sound_transpose_global: macro
+macro sound_transpose_global
 	db		$8c
 	db		\1
 	endm
 
 ; Reset the transposition for the CURRENT channel. (CH1, CH2, CH3)
 ; PARAMETERS: [none]
-sound_reset_transpose: macro
+macro sound_reset_transpose
 	db		$8d
 	endm
 
 ; Reset the transposition for ALL channels. (Any channel)
 ; PARAMETERS: [none]
 ; NOTE: Can be used on CH4, but does not affect it.
-sound_reset_transpose_global: macro
+macro sound_reset_transpose_global
 	db		$8e
 	endm
 
 ; Set the arpeggio pointer. (Any channel)
 ; PARAMETERS: [pointer]
-sound_set_arp_ptr: macro
+macro sound_set_arp_ptr
     db      $8f
     dw      \1
     endm
 
+; Set the song speed. (Any channel)
+; PARAMETERS [speed 1, speed 2]
+macro sound_set_speed
+    db      $90
+    db      \1,\2
+    endm
+
 ; Marks the end of the sound data for the current channel. (Any channel)
 ; PARAMETERS: none
-sound_end:          macro
+macro sound_end
     db      $ff
 endm
 
@@ -1001,6 +1008,7 @@ DevSoundX_UpdateChannel\1:
 	dw		.resettransposechannel
 	dw		.resettransposeglobal
     dw      .setarpptr
+    dw      .setspeed
 NUM_COMMANDS = (@ - .cmdtable) / 2
     
 .instrument
@@ -1235,12 +1243,20 @@ NUM_COMMANDS = (@ - .cmdtable) / 2
     ld      [DSX_CH\1_ArpResetPtr+1],a
     jp      .getbyte
 
-.dummyword
-    inc     hl
-.dummybyte
-    inc     hl
-.dummynone
+.setspeed
+    pop     hl
+    ld      a,[hl+]
+    ld      [DSX_MusicSpeed1],a
+    ld      a,[hl+]
+    ld      [DSX_MusicSpeed2],a
     jp      .getbyte
+
+;.dummyword
+;    inc     hl
+;.dummybyte
+;    inc     hl
+;.dummynone
+;    jp      .getbyte
     
 .end
     ld      a,[DSX_ChannelFlags]

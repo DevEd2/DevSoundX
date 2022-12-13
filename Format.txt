@@ -247,6 +247,15 @@ PARAMETERS:
   1. Pointer to arpeggio macro
 NOTE: This command overrides the current instrument's arpeggio macro.
 
+$90 - sound_set_speed (Any channel)
+Change the tempo of the song. The speed is in the same format as the song
+speed in the music header.
+PARAMETERS:
+  1. First speed value
+  2. Second speed value
+NOTE: While this command can be used on any sound channel, it affects
+every channel when used.
+
 $ff - sound_end
 Marks the end of a block of sequence data.
 PARAMETERS: (none)
