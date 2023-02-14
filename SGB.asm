@@ -32,7 +32,7 @@ OBJ_TRN		= $18
 ; constants
 SIZEOF_SGB_PACKET EQU 16
 
-sgb_packet_header:	macro
+macro sgb_packet_header
 	db	\1 * 8 | \2
 	endm
 

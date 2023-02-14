@@ -53,18 +53,18 @@ _DOWN       = 1 << BTN_DOWN
 
 ; Macro definitions
 
-dbw:        macro
+macro dbw
     db      \1
     dw      \2
     endm
 
-dstr:       macro
+macro dstr
     db      \1,0
     db      \3
     db      \2
     endm
     
-wait_vram:  macro
+macro wait_vram
 .\@:
     ldh     a,[rSTAT]
     and     STATF_BUSY
@@ -830,7 +830,7 @@ include "PerFade.asm"
 
 ; ================================================================
 
-include "DevSoundX.asm"
+include "Audio/DevSoundX.asm"
 
 ; ================================================================
 
