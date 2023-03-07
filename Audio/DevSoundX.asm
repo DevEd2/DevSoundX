@@ -893,6 +893,13 @@ DevSoundX_UpdateChannel\1:
         ld      [DSX_CH\1_PitchMode],a
 :       pop     hl
     endc
+    xor     a
+    ld      [DSX_CH\1_VolDelay],a
+    ld      [DSX_CH\1_ArpDelay],a
+    ld      [DSX_CH\1_PulseDelay],a
+    if \1 != 4
+        ld      [DSX_CH\1_PitchDelay],a
+    endc
     jp      .donech\1
 .isrest
     ld      [DSX_CH\1_Note],a
