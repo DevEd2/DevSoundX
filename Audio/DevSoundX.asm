@@ -482,6 +482,11 @@ DevSoundX_PlaySong:
     ld      [DSX_CH4_Timer],a
     ld      [DSX_MusicSpeedTick],a
     ld      [DSX_MusicPlaying],a
+    ld      a,15
+    ld      [DSX_CH1_ChannelVol],a
+    ld      [DSX_CH2_ChannelVol],a
+    ld      [DSX_CH3_ChannelVol],a
+    ld      [DSX_CH4_ChannelVol],a
     ret
 
 ; ================
@@ -897,9 +902,6 @@ DevSoundX_UpdateChannel\1:
     ld      [DSX_CH\1_VolDelay],a
     ld      [DSX_CH\1_ArpDelay],a
     ld      [DSX_CH\1_PulseDelay],a
-    if \1 != 4
-        ld      [DSX_CH\1_PitchDelay],a
-    endc
     jp      .donech\1
 .isrest
     ld      [DSX_CH\1_Note],a
