@@ -136,6 +136,9 @@ PARAMETERS:
   1. Note (C_, C#, D_, D#, E_, F_, F#, G_, G#, A_, A#, B_) (1 byte)
   2. Octave (2 - 8) (1 byte)
   3. Length (1 byte)
+NOTE: If a note's length is zero, it will not play unless followed by
+a wait command. This can be useful if you want a note to start with
+a pitch bend command.
 
 $7d - release (All channels)
 Release a held note and wait a given number of song ticks.
