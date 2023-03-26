@@ -485,7 +485,6 @@ DevSoundX_PlaySong:
     ld      a,15
     ld      [DSX_CH1_ChannelVol],a
     ld      [DSX_CH2_ChannelVol],a
-    ld      [DSX_CH3_ChannelVol],a
     ld      [DSX_CH4_ChannelVol],a
     ret
 
