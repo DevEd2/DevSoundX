@@ -901,6 +901,9 @@ DevSoundX_UpdateChannel\1:
     ld      [DSX_CH\1_VolDelay],a
     ld      [DSX_CH\1_ArpDelay],a
     ld      [DSX_CH\1_PulseDelay],a
+    ld      a,[DSX_CH\1_Timer]
+    and     a
+    jp      z,.getbyte
     jp      .donech\1
 .isrest
     ld      [DSX_CH\1_Note],a
