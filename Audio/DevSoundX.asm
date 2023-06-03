@@ -710,7 +710,7 @@ DevSoundX_UpdateRegisters:
 .donoise
     ld      a,[hl+]
     ld      b,a
-    ld      a,[DSX_CH1_ChannelVol]
+    ld      a,[DSX_CH4_ChannelVol]
     and     $f
     swap    a
     or      b
