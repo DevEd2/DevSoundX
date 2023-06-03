@@ -749,6 +749,7 @@ DevSoundX_UpdateRegisters:
     rrca
     or      b
     ldh     [rNR43],a
+    ldh     [rNR41],a ; prevent lockup
     ret
 
 ; ================
