@@ -710,7 +710,7 @@ DevSoundX_UpdateRegisters:
 .donoise
     ld      a,[hl+]
     ld      b,a
-    ld      a,[DSX_CH4_ChannelVol]
+    ld      a,[DSX_CH1_ChannelVol]
     and     $f
     swap    a
     or      b
@@ -794,23 +794,6 @@ DevSoundX_UpdateChannel\1:
     ld      e,a
     ld      a,d
     ld      [DSX_CH\1_Note],a
-    
-    ; for CH4, reinit zombie mode (hopefully fixes noise cutoff on some GB models)
-    if \1 == 4
-        ld      a,[DSX_ChannelFlags]
-        bit     3,a
-        jr      z,:+
-        ld      a,$f0
-        ldh     [rNR42],a
-        and		$80
-        ldh     [rNR44],a
-        ld      a,$18
-        ldh     [rNR42],a
-        xor     a
-        ld      [DSX_CH\1_CurrentNRX2],a
-        ld      [DSX_CH\1_PreviousNRX2],a
-:
-    endc
     
     ld      a,[DSX_CH\1_FirstNote]
     and     a
