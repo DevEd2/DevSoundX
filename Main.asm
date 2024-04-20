@@ -24,30 +24,30 @@
 
 ; Global constants
 
-DEF SYSTEM_DMG  = 0 ; Game Boy
-DEF SYSTEM_MGB  = 1 ; Game Boy Pocket, Game Boy Light
-DEF SYSTEM_SGB  = 2 ; Super Game Boy
-DEF SYSTEM_SGB2 = 3 ; Super Game Boy 2
-DEF SYSTEM_CGB  = 4 ; Game Boy Color
-DEF SYSTEM_AGB  = 5 ; Game Boy Advance, Game Boy Advance SP, Game Boy Player
+def SYSTEM_DMG  = 0 ; Game Boy
+def SYSTEM_MGB  = 1 ; Game Boy Pocket, Game Boy Light
+def SYSTEM_SGB  = 2 ; Super Game Boy
+def SYSTEM_SGB2 = 3 ; Super Game Boy 2
+def SYSTEM_CGB  = 4 ; Game Boy Color
+def SYSTEM_AGB  = 5 ; Game Boy Advance, Game Boy Advance SP, Game Boy Player
 
-DEF BTN_A       = 0
-DEF BTN_B       = 1
-DEF BTN_SELECT  = 2
-DEF BTN_START   = 3
-DEF BTN_RIGHT   = 4
-DEF BTN_LEFT    = 5
-DEF BTN_UP      = 6
-DEF BTN_DOWN    = 7
+def BTN_A       = 0
+def BTN_B       = 1
+def BTN_SELECT  = 2
+def BTN_START   = 3
+def BTN_RIGHT   = 4
+def BTN_LEFT    = 5
+def BTN_UP      = 6
+def BTN_DOWN    = 7
 
-DEF _A          = 1 << BTN_A
-DEF _B          = 1 << BTN_B
-DEF _START      = 1 << BTN_START
-DEF _SELECT     = 1 << BTN_SELECT
-DEF _RIGHT      = 1 << BTN_RIGHT
-DEF _LEFT       = 1 << BTN_LEFT
-DEF _UP         = 1 << BTN_UP
-DEF _DOWN       = 1 << BTN_DOWN
+def _A          = 1 << BTN_A
+def _B          = 1 << BTN_B
+def _START      = 1 << BTN_START
+def _SELECT     = 1 << BTN_SELECT
+def _RIGHT      = 1 << BTN_RIGHT
+def _LEFT       = 1 << BTN_LEFT
+def _UP         = 1 << BTN_UP
+def _DOWN       = 1 << BTN_DOWN
 
 ; ======================================================================
 
