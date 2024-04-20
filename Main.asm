@@ -24,30 +24,30 @@
 
 ; Global constants
 
-SYSTEM_DMG  = 0 ; Game Boy
-SYSTEM_MGB  = 1 ; Game Boy Pocket, Game Boy Light
-SYSTEM_SGB  = 2 ; Super Game Boy
-SYSTEM_SGB2 = 3 ; Super Game Boy 2
-SYSTEM_CGB  = 4 ; Game Boy Color
-SYSTEM_AGB  = 5 ; Game Boy Advance, Game Boy Advance SP, Game Boy Player
+DEF SYSTEM_DMG  = 0 ; Game Boy
+DEF SYSTEM_MGB  = 1 ; Game Boy Pocket, Game Boy Light
+DEF SYSTEM_SGB  = 2 ; Super Game Boy
+DEF SYSTEM_SGB2 = 3 ; Super Game Boy 2
+DEF SYSTEM_CGB  = 4 ; Game Boy Color
+DEF SYSTEM_AGB  = 5 ; Game Boy Advance, Game Boy Advance SP, Game Boy Player
 
-BTN_A       = 0
-BTN_B       = 1
-BTN_SELECT  = 2
-BTN_START   = 3
-BTN_RIGHT   = 4
-BTN_LEFT    = 5
-BTN_UP      = 6
-BTN_DOWN    = 7
+DEF BTN_A       = 0
+DEF BTN_B       = 1
+DEF BTN_SELECT  = 2
+DEF BTN_START   = 3
+DEF BTN_RIGHT   = 4
+DEF BTN_LEFT    = 5
+DEF BTN_UP      = 6
+DEF BTN_DOWN    = 7
 
-_A          = 1 << BTN_A
-_B          = 1 << BTN_B
-_START      = 1 << BTN_START
-_SELECT     = 1 << BTN_SELECT
-_RIGHT      = 1 << BTN_RIGHT
-_LEFT       = 1 << BTN_LEFT
-_UP         = 1 << BTN_UP
-_DOWN       = 1 << BTN_DOWN
+DEF _A          = 1 << BTN_A
+DEF _B          = 1 << BTN_B
+DEF _START      = 1 << BTN_START
+DEF _SELECT     = 1 << BTN_SELECT
+DEF _RIGHT      = 1 << BTN_RIGHT
+DEF _LEFT       = 1 << BTN_LEFT
+DEF _UP         = 1 << BTN_UP
+DEF _DOWN       = 1 << BTN_DOWN
 
 ; ======================================================================
 
@@ -74,7 +74,7 @@ macro wait_vram
 ; ======================================================================
 
 ; Hardware defines
-include "hardware.inc/hardware.inc"
+include "hardware.inc"
 
 ; RAM defines
 section "Player variables",wram0
