@@ -74,7 +74,7 @@ macro wait_vram
 ; ======================================================================
 
 ; Hardware defines
-include "hardware.inc"
+include "hardware.inc/hardware.inc"
 
 ; RAM defines
 section "Player variables",wram0
