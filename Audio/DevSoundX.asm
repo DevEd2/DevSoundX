@@ -24,7 +24,7 @@
 
 section "DevSound X RAM defines",wram0
 
-sizeof_DSX_ChannelStruct = 0
+def sizeof_DSX_ChannelStruct = 0
 
 macro DSX_ChannelStruct
 DSX_CH\1_Start:
@@ -98,7 +98,7 @@ DSX_RAMStart:
 DSX_MusicPlaying:       db
 DSX_GlobalTick:         db
 DSX_ChannelFlags:       db  ; upper 4 bits = sfx, lower 4 bits = music
-DSX_MusicMask           = %00001111
+def DSX_MusicMask           = %00001111
 
 DSX_MusicTick:          db  ; increments by 1 each speed tick
 DSX_MusicSpeedTick:     db
@@ -120,7 +120,7 @@ DSX_CH2_EchoBuffer:     ds 4
 DSX_CH3_EchoBuffer:     ds 4
 DSX_CH4_EchoBuffer:     ds 4
 .end
-sizeof_DSX_MusicRAM = .end-DSX_MusicRAM
+def sizeof_DSX_MusicRAM = .end-DSX_MusicRAM
 
 DSX_RAMEnd:
 
@@ -128,40 +128,40 @@ DSX_RAMEnd:
 
 ; Pitch constants
 
-PITCH_MODE_NONE         = 0
-PITCH_MODE_SLIDE_UP     = 1
-PITCH_MODE_SLIDE_DOWN   = 2
-PITCH_MODE_PORTAMENTO   = 3
+def PITCH_MODE_NONE         = 0
+def PITCH_MODE_SLIDE_UP     = 1
+def PITCH_MODE_SLIDE_DOWN   = 2
+def PITCH_MODE_PORTAMENTO   = 3
 
-PITCH_BIT_MONTY         = 7
+def PITCH_BIT_MONTY         = 7
 
-PITCH_MODE_MASK         = %00001111
-PITCH_BIT_MASK          = %11110000
+def PITCH_MODE_MASK         = %00001111
+def PITCH_BIT_MASK          = %11110000
 
 ; ================================================================
 
 ; Command defines + constants
 
-seq_wait    = $fd
-seq_loop    = $fe
-seq_end     = $ff
+def seq_wait    = $fd
+def seq_loop    = $fe
+def seq_end     = $ff
 ; pitch macros use signed int8
-pitch_loop  = $80
-pitch_end   = $7f
+def pitch_loop  = $80
+def pitch_end   = $7f
 
 ; notes
-C_  =   0
-C#  =   1
-D_  =   2
-D#  =   3
-E_  =   4
-F_  =   5
-F#  =   6
-G_  =   7
-G#  =   8
-A_  =   9
-A#  =   10
-B_  =   11
+def C_  =   0
+def C#  =   1
+def D_  =   2
+def D#  =   3
+def E_  =   4
+def F_  =   5
+def F#  =   6
+def G_  =   7
+def G#  =   8
+def A_  =   9
+def A#  =   10
+def B_  =   11
 
 ; PARAMETERS: [length]
 macro rest
@@ -1020,7 +1020,7 @@ DevSoundX_UpdateChannel\1:
 	dw		.resettransposeglobal
     dw      .setarpptr
     dw      .setspeed
-NUM_COMMANDS = (@ - .cmdtable) / 2
+def NUM_COMMANDS = (@ - .cmdtable) / 2
     
 .instrument
     pop     hl
@@ -1820,11 +1820,11 @@ DevSoundX_LoadWave:
     ld      [hl],AUD3ENA_ON
     ; copy wave from HL to wave RAM
     pop     hl
-i = 0
+def i = 0
     rept    16
         ld      a,[hl+]
         ldh     [_AUD3WAVERAM+i],a
-i = i+1
+def i = i+1
     endr
     ; trigger wave channel
     ld      a,%10000000

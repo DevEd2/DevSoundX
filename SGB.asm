@@ -3,34 +3,34 @@
 ; ====================
 
 ; SGB command definitions
-PAL01		= $00
-PAL23		= $01
-PAL03		= $02
-PAL12		= $03
-ATTR_BLK	= $04
-ATTR_LIN	= $05
-ATTR_DIV	= $06
-ATTR_CHR	= $07
-SOUND 		= $08
-SOU_TRN		= $09
-PAL_SET		= $0a
-PAL_TRN		= $0b
-ATRC_EN		= $0c
-TEST_EN		= $0d
-ICON_EN		= $0e
-DATA_SND	= $0f
-DATA_TRN	= $10
-MLT_REQ		= $11
-JUMP		= $12
-CHR_TRN		= $13
-PCT_TRN		= $14
-ATTR_TRN	= $15
-ATTR_SET	= $16
-MASK_EN		= $17
-OBJ_TRN		= $18
+def PAL01		= $00
+def PAL23		= $01
+def PAL03		= $02
+def PAL12		= $03
+def ATTR_BLK	= $04
+def ATTR_LIN	= $05
+def ATTR_DIV	= $06
+def ATTR_CHR	= $07
+def SOUND 		= $08
+def SOU_TRN		= $09
+def PAL_SET		= $0a
+def PAL_TRN		= $0b
+def ATRC_EN		= $0c
+def TEST_EN		= $0d
+def ICON_EN		= $0e
+def DATA_SND	= $0f
+def DATA_TRN	= $10
+def MLT_REQ		= $11
+def JUMP		= $12
+def CHR_TRN		= $13
+def PCT_TRN		= $14
+def ATTR_TRN	= $15
+def ATTR_SET	= $16
+def MASK_EN		= $17
+def OBJ_TRN		= $18
 
 ; constants
-SIZEOF_SGB_PACKET EQU 16
+def SIZEOF_SGB_PACKET EQU 16
 
 macro sgb_packet_header
 	db	\1 * 8 | \2
