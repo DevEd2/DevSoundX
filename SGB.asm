@@ -3,34 +3,34 @@
 ; ====================
 
 ; SGB command definitions
-DEF PAL01		= $00
-DEF PAL23		= $01
-DEF PAL03		= $02
-DEF PAL12		= $03
-DEF ATTR_BLK	= $04
-DEF ATTR_LIN	= $05
-DEF ATTR_DIV	= $06
-DEF ATTR_CHR	= $07
-DEF SOUND 		= $08
-DEF SOU_TRN		= $09
-DEF PAL_SET		= $0a
-DEF PAL_TRN		= $0b
-DEF ATRC_EN		= $0c
-DEF TEST_EN		= $0d
-DEF ICON_EN		= $0e
-DEF DATA_SND	= $0f
-DEF DATA_TRN	= $10
-DEF MLT_REQ		= $11
-DEF JUMP		= $12
-DEF CHR_TRN		= $13
-DEF PCT_TRN		= $14
-DEF ATTR_TRN	= $15
-DEF ATTR_SET	= $16
-DEF MASK_EN		= $17
-DEF OBJ_TRN		= $18
+def PAL01		= $00
+def PAL23		= $01
+def PAL03		= $02
+def PAL12		= $03
+def ATTR_BLK	= $04
+def ATTR_LIN	= $05
+def ATTR_DIV	= $06
+def ATTR_CHR	= $07
+def SOUND 		= $08
+def SOU_TRN		= $09
+def PAL_SET		= $0a
+def PAL_TRN		= $0b
+def ATRC_EN		= $0c
+def TEST_EN		= $0d
+def ICON_EN		= $0e
+def DATA_SND	= $0f
+def DATA_TRN	= $10
+def MLT_REQ		= $11
+def JUMP		= $12
+def CHR_TRN		= $13
+def PCT_TRN		= $14
+def ATTR_TRN	= $15
+def ATTR_SET	= $16
+def MASK_EN		= $17
+def OBJ_TRN		= $18
 
 ; constants
-DEF SIZEOF_SGB_PACKET EQU 16
+def SIZEOF_SGB_PACKET EQU 16
 
 macro sgb_packet_header
 	db	\1 * 8 | \2
