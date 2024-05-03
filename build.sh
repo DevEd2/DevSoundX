@@ -4,7 +4,7 @@ PROJECTNAME="DevSoundX"
 set -e
 
 echo Assembling...
-rgbasm -H -o $PROJECTNAME.obj -p 255 Main.asm
+rgbasm -o $PROJECTNAME.obj -p 255 Main.asm
 
 echo Linking...
 rgblink -p 255 -o $PROJECTNAME.gbc -n $PROJECTNAME.sym $PROJECTNAME.obj
