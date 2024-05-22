@@ -1478,11 +1478,10 @@ if \1 != 4
     jr      z,.looppitch
 .setpitch
     ld      [DSX_CH\1_VibOffset],a
-    bit     7,a
-    ld      a,0 ; we need the zero flag so xor a is no good here
-    jr      z,:+
-    cpl
-:   ld      [DSX_CH\1_VibOffset+1],a
+    cp      1 << 7
+    ccf
+    sbc     a    
+    ld      [DSX_CH\1_VibOffset+1],a
 .setpitchptr
     ld      a,l
     ld      [DSX_CH\1_PitchPtr],a
@@ -1493,9 +1492,9 @@ if \1 != 4
     ld      a,[hl+]
     add     l
     ld      l,a
-    jr      c,:--
+    jr      c,:-
     dec     h
-    jr      :--
+    jr      :-
 endc
 
 .dofreq ; set frequency
