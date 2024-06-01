@@ -1500,7 +1500,7 @@ endc
 .dofreq ; set frequency
     ld      a,[DSX_CH\1_ArpTranspose]
     bit     7,a
-    jr      nz,:+
+    jr      nz,:++
 .relative1
     and     $7f
     ld      c,a
