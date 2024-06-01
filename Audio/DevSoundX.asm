@@ -1499,11 +1499,14 @@ endc
 
 .dofreq ; set frequency
     ld      a,[DSX_CH\1_ArpTranspose]
-    bit     7,a
-    jr      nz,:++
-.relative1
-    and     $7f
-    ld      c,a
+    cp      $40
+    jr      c,:+
+    sub     $80
+    jr      nc,.gotnote
+    ; values $40~$7f is now $c0~$ff
+    cpl         ; = $3f~$00
+    sub     $3f ; = $00~-$3f
+:   ld      c,a
     ; check for echo
     ld      a,[DSX_CH\1_CurrentNRX2]
     bit     7,a
@@ -1521,24 +1524,13 @@ endc
 .noecho
     ld      a,[DSX_CH\1_Note]
 .addtranspose
-    ld      b,a
     if      \1 != 4
+        ld      b,a
         ld      a,[DSX_CH\1_Transpose]
         add     b
-        ld      b,a
     endc
-    ld      a,c
-    cp      $3f
-    jr      c,.up1
-.down1
-    ld      c,a
-    ld      a,b
-    sub     b
-    jr      :+
-.up1
-    add     b
-    res     7,a
-:   
+    add     c
+.gotnote
     if \1 != 4
         ld      c,a
         ld      hl,DSX_FreqTablePtr
