@@ -741,14 +741,26 @@ DevSoundX_UpdateRegisters:
     call    .hl
     pop     hl
     ld      [hl+],a
-:   ld      a,[hl]
-    ld      b,a
-    ld      a,[DSX_CH4_NRX1]
+:   ld      a,[DSX_CH4_NRX1]
     and     1
     swap    a
     rrca
-    or      b
+    or      [hl]
+    ld      b,a
+    ; if noise width is changed, retrigger it to prevent lock-up
+    ldh     a,[rNR43]
+    xor     b
+    bit     3,a
+    ld      a,b
     ldh     [rNR43],a
+    ret     z
+    dec     hl
+    ld      a,[hl]
+    swap    a
+    or      8
+    ldh     [rNR42],a
+    ld      a,$80
+    ldh     [rNR44],a
     ret
 
 ; ================
