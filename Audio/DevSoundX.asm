@@ -22,68 +22,6 @@
 ; SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ; ================================================================
 
-def ENABLE_YMZ284 = 1
-
-; YMZ284 register defines
-if ENABLE_YMZ284
-
-def rYMAddr = $6400
-def rYMData = $6401
-
-def rYM1FreqLo      = $0    ; AAAAAAAA
-def rYM1FreqHi      = $1    ; ----AAAA
-def rYM2FreqLo      = $2    ; AAAAAAAA
-def rYM2FreqHi      = $3    ; ----AAAA
-def rYM3FreqLo      = $4    ; AAAAAAAA
-def rYM3FreqHi      = $5    ; ----AAAA
-def rYMNoiseFreq    = $6    ; ---AAAAA  
-def rYMMixing       = $7    ; --AAABBB  A = noise on for 3,2,1  B = tone on for 3,2,1
-def rYM1Vol         = $8    ; ---ABBBB  A = use envelope  B = level
-def rYM2Vol         = $9    ; ---ABBBB  A = use envelope  B = level
-def rYM3Vol         = $A    ; ---ABBBB  A = use envelope  B = level
-def rYMEnvFreqLo    = $B    ; AAAAAAAA
-def rYMEnvFreqHi    = $C    ; AAAAAAAA
-def rYMEnvShape     = $D    ; ----ABCD  A = loop  B = attack  C = pingpong  D = hold
-; $E is not used
-def rYMControl      = $F    ; 0000----  upper four bits MUST be 0
-
-def YM1_TONE_OFF    = %00000001
-def YM1_TONE_ON     = %00000000
-def YM2_TONE_OFF    = YM1_TONE_OFF << 1
-def YM2_TONE_ON     = YM1_TONE_OFF << 1
-def YM3_TONE_OFF    = YM1_TONE_OFF << 2
-def YM3_TONE_ON     = YM1_TONE_OFF << 2
-def YM1_NOISE_OFF   = %00001000
-def YM1_NOISE_ON    = %00000000
-def YM2_NOISE_OFF   = YM1_NOISE_OFF << 1
-def YM2_NOISE_ON    = YM1_NOISE_ON << 1
-def YM3_NOISE_OFF   = YM1_NOISE_OFF << 2
-def YM3_NOISE_ON    = YM1_NOISE_ON << 2
-
-def YM_TONE_OFF     = YM1_TONE_OFF | YM2_TONE_OFF | YM3_TONE_OFF
-def YM_TONE_ON      = YM1_TONE_ON | YM2_TONE_ON | YM3_TONE_ON
-def YM_NOISE_OFF    = YM1_NOISE_OFF | YM2_NOISE_OFF | YM3_NOISE_OFF
-def YM_NOISE_ON     = YM1_NOISE_ON | YM2_NOISE_ON | YM3_NOISE_ON
-
-def YM1_ENV_OFF     = %00010000
-def YM1_ENV_ON      = %00000000
-def YM2_ENV_OFF     = YM1_ENV_OFF << 1
-def YM2_ENV_ON      = YM1_ENV_ON << 1
-def YM3_ENV_OFF     = YM1_ENV_OFF << 2
-def YM3_ENV_ON      = YM1_ENV_ON << 2
-
-def YM_ENV_CONT     = %1000
-def YM_ENV_ATT      = %0100
-def YM_ENV_ALT      = %0010
-def YM_ENV_HOLD     = %0001
-
-def YM_ENV_SAW1     = YM_ENV_CONT
-def YM_ENV_SAW2     = YM_ENV_CONT | YM_ENV_ATT
-def YM_ENV_TRI1     = YM_ENV_CONT | YM_ENV_ALT
-def YM_ENV_TRI2     = YM_ENV_CONT | YM_ENV_ALT | YM_ENV_ATT
-
-endc
-
 section "DevSound X RAM defines",wram0
 
 def sizeof_DSX_ChannelStruct = 0
