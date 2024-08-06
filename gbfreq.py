@@ -10,7 +10,7 @@ def main(argv):
                 of.write("\n    dw      ")
             x = float(argv[0]) * pow(2, (i - 69) / 12)
             y = (2048 * (x - 64)) / x
-            of.write('0x%x,' % int(round(y)))
+            of.write('$%x,' % int(round(y)))
         of.close()
     else:
         x = float(argv[0]) * pow(2, (float(argv[1]) - 69) / 12)

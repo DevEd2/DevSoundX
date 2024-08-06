@@ -65,13 +65,14 @@ def YM_TONE_ON      = YM1_TONE_ON | YM2_TONE_ON | YM3_TONE_ON
 def YM_NOISE_OFF    = YM1_NOISE_OFF | YM2_NOISE_OFF | YM3_NOISE_OFF
 def YM_NOISE_ON     = YM1_NOISE_ON | YM2_NOISE_ON | YM3_NOISE_ON
 
-def YM1_ENV_OFF     = %00010000
-def YM1_ENV_ON      = %00000000
+def YM1_ENV_OFF     = %00000000
+def YM1_ENV_ON      = %00010000
 def YM2_ENV_OFF     = YM1_ENV_OFF << 1
 def YM2_ENV_ON      = YM1_ENV_ON << 1
 def YM3_ENV_OFF     = YM1_ENV_OFF << 2
 def YM3_ENV_ON      = YM1_ENV_ON << 2
 
+def YM_ENV_NONE     = %0000
 def YM_ENV_CONT     = %1000
 def YM_ENV_ATT      = %0100
 def YM_ENV_ALT      = %0010
@@ -95,7 +96,8 @@ DSX_CH\1_ReturnPtr:         dw
 DSX_CH\1_VolPtr:            dw
 DSX_CH\1_ArpPtr:            dw
 DSX_CH\1_NoisePtr:
-DSX_CH\1_WavePtr:   
+DSX_CH\1_WavePtr:
+DSX_CH\1_ModePtr:           
 DSX_CH\1_PulsePtr:          dw
 if \1 != 4
 DSX_CH\1_PitchPtr:          dw
@@ -105,6 +107,7 @@ DSX_CH\1_VolDelay:          db
 DSX_CH\1_ArpDelay:          db
 DSX_CH\1_NoiseDelay:
 DSX_CH\1_WaveDelay:
+DSX_CH\1_ModeDelay:
 DSX_CH\1_PulseDelay:        db
 if \1 != 4
 DSX_CH\1_PitchDelay:        db
@@ -127,8 +130,12 @@ DSX_CH\1_VolReleasePtr:     dw
 DSX_CH\1_ArpResetPtr:       dw
 DSX_CH\1_ArpReleasePtr:     dw
 DSX_CH\1_WaveResetPtr:
+DSX_CH\1_NoiseResetPtr:
+DSX_CH\1_ModeResetPtr:
 DSX_CH\1_PulseResetPtr:     dw
 DSX_CH\1_WaveReleasePtr:
+DSX_CH\1_NoiseReleasePtr:
+DSX_CH\1_ModeReleasePtr:
 DSX_CH\1_PulseReleasePtr:   dw
 if \1 != 4
 DSX_CH\1_PitchResetPtr:     dw
@@ -176,11 +183,21 @@ DSX_MusicRAM:
     DSX_ChannelStruct       2
     DSX_ChannelStruct       3
     DSX_ChannelStruct       4
+    if ENABLE_YMZ284
+    DSX_ChannelStruct       5
+    DSX_ChannelStruct       6
+    DSX_ChannelStruct       7
+    endc
 
 DSX_CH1_EchoBuffer:     ds 4
 DSX_CH2_EchoBuffer:     ds 4
 DSX_CH3_EchoBuffer:     ds 4
 DSX_CH4_EchoBuffer:     ds 4
+if ENABLE_YMZ284
+DSX_CH5_EchoBuffer:     ds  4
+DSX_CH6_EchoBuffer:     ds  4
+DSX_CH7_EchoBuffer:     ds  4
+endc
 .end
 def sizeof_DSX_MusicRAM = .end-DSX_MusicRAM
 
@@ -370,11 +387,26 @@ macro sound_set_arp_ptr
     endm
 
 ; Set the song speed. (Any channel)
-; PARAMETERS [speed 1, speed 2]
+; PARAMETERS: [speed 1, speed 2]
 macro sound_set_speed
     db      $90
     db      \1,\2
     endm
+
+if ENABLE_YMZ284
+; Set the envelope mode. (YMZ284 channels only)
+; PARAMETERS: [mode]
+macro sound_set_envelope_mode
+    db  $91
+    db  \1
+    endm
+
+; Set the envelope offset. (YMZ284 channels only)
+macro sound_set_envelope_offset
+    db  $92
+    dw  \1
+    endm
+endc
 
 ; Marks the end of the sound data for the current channel. (Any channel)
 ; PARAMETERS: none
@@ -401,6 +433,7 @@ DSX_Thumbprint:
 ; OUTPUT:   (none)
 ; DESTROYS: af bc hl
 DevSoundX_Init:
+    ; init sound
     ld      hl,rNR52
     ld      [hl],AUDENA_OFF
     ld      [hl],AUDENA_ON
@@ -408,6 +441,63 @@ DevSoundX_Init:
     ld      [hl],%11111111
     dec     l
     ld      [hl],$77
+
+    if      ENABLE_YMZ284
+    ; set YMZ284 power control
+    ld      hl,rYMData
+    ld      a,rYMControl
+    ld      [rYMAddr],a
+    ld      [hl],0
+    ; init YMZ284 volume to zero
+    ld      a,rYM1Vol
+    ld      [rYMAddr],a
+    ld      [hl],0 | YM_ENV_OFF
+    inc     a   ; a = rYM2Vol
+    ld      [rYMAddr],a
+    ld      [hl],0 | YM_ENV_OFF
+    inc     a   ; a = rYM3Vol
+    ld      [rYMAddr],a
+    ld      [hl],0 | YM_ENV_OFF
+    ; set mixer mask to tone+noise off for all channels
+    ld      a,rYMMixer
+    ld      [rYMAddr],a
+    ld      [hl],YM_TONE_OFF | YM_NOISE_OFF
+    ; clear envelope
+    ld      a,rYMEnvShape
+    ld      [rYMAddr],a
+    ld      [hl],YM_ENV_NONE
+    ; clear tone frequency
+    ld      a,rYM1FreqLo
+    ld      [rYMAddr],a
+    ld      [hl],0
+    inc     a   ; a = rYM1FreqHi
+    ld      [rYMAddr],a
+    ld      [hl],0
+    inc     a   ; a = rYM2FreqLo
+    ld      [rYMAddr],a
+    ld      [hl],0
+    inc     a   ; a = rYM2FreqHi
+    ld      [rYMAddr],a
+    ld      [hl],0
+    inc     a   ; a = rYM3FreqLo
+    ld      [rYMAddr],a
+    ld      [hl],0
+    inc     a   ; a = rYM3FreqHi
+    ld      [rYMAddr],a
+    ld      [hl],0
+    ; clear noise frequency
+    inc     a   ; a = rYMNoiseFreq
+    ld      [rYMAddr],a
+    ld      [hl],0
+    ; clear envelope frequency
+    ld      a,rYMEnvFreqLo
+    ld      [rYMAddr],a
+    ld      [hl],0
+    inc     a   ; a = rYMEnvFreqHi
+    ld      [rYMAddr],a
+    ld      [hl],0
+    
+    endc
 
     ; initialize envelope registers for zombie mode
     ld      a,$f0
@@ -442,39 +532,89 @@ DevSoundX_Init:
     ld      [DSX_CH2_SeqPtr],a
     ld      [DSX_CH3_SeqPtr],a
     ld      [DSX_CH4_SeqPtr],a
+    if      ENABLE_YMZ284
+    ld      [DSX_CH5_SeqPtr],a
+    ld      [DSX_CH6_SeqPtr],a
+    ld      [DSX_CH7_SeqPtr],a
+    endc
     ld      [DSX_CH1_VolPtr],a
     ld      [DSX_CH2_VolPtr],a
     ld      [DSX_CH3_VolPtr],a
     ld      [DSX_CH4_VolPtr],a
+    if      ENABLE_YMZ284
+    ld      [DSX_CH5_VolPtr],a
+    ld      [DSX_CH6_VolPtr],a
+    ld      [DSX_CH7_VolPtr],a
+    endc
     ld      [DSX_CH1_PitchPtr],a
     ld      [DSX_CH2_PitchPtr],a
     ld      [DSX_CH3_PitchPtr],a
+    if      ENABLE_YMZ284
+    ld      [DSX_CH5_PitchPtr],a
+    ld      [DSX_CH6_PitchPtr],a
+    ld      [DSX_CH7_PitchPtr],a
+    endc
     ld      [DSX_CH1_VolResetPtr],a
     ld      [DSX_CH2_VolResetPtr],a
     ld      [DSX_CH3_VolResetPtr],a
     ld      [DSX_CH4_VolResetPtr],a
+    if      ENABLE_YMZ284
+    ld      [DSX_CH5_VolResetPtr],a
+    ld      [DSX_CH6_VolResetPtr],a
+    ld      [DSX_CH7_VolResetPtr],a
+    endc
     ld      [DSX_CH1_PitchResetPtr],a
     ld      [DSX_CH2_PitchResetPtr],a
     ld      [DSX_CH3_PitchResetPtr],a
     ld      a,high(DSX_DummyChannel)
+    if      ENABLE_YMZ284
+    ld      [DSX_CH5_PitchResetPtr],a
+    ld      [DSX_CH6_PitchResetPtr],a
+    ld      [DSX_CH7_PitchResetPtr],a
+    endc
     ld      [DSX_CH1_SeqPtr+1],a
     ld      [DSX_CH2_SeqPtr+1],a
     ld      [DSX_CH3_SeqPtr+1],a
     ld      [DSX_CH4_SeqPtr+1],a
+    if      ENABLE_YMZ284
+    ld      [DSX_CH5_SeqPtr+1],a
+    ld      [DSX_CH6_SeqPtr+1],a
+    ld      [DSX_CH7_SeqPtr+1],a
+    endc
     ld      [DSX_CH1_VolPtr+1],a
     ld      [DSX_CH2_VolPtr+1],a
     ld      [DSX_CH3_VolPtr+1],a
     ld      [DSX_CH4_VolPtr+1],a
+    if      ENABLE_YMZ284
+    ld      [DSX_CH5_VolPtr+1],a
+    ld      [DSX_CH6_VolPtr+1],a
+    ld      [DSX_CH7_VolPtr+1],a
+    endc
     ld      [DSX_CH1_PitchPtr+1],a
     ld      [DSX_CH2_PitchPtr+1],a
     ld      [DSX_CH3_PitchPtr+1],a
+    if      ENABLE_YMZ284
+    ld      [DSX_CH5_PitchPtr+1],a
+    ld      [DSX_CH6_PitchPtr+1],a
+    ld      [DSX_CH7_PitchPtr+1],a
+    endc
     ld      [DSX_CH1_VolResetPtr+1],a
     ld      [DSX_CH2_VolResetPtr+1],a
     ld      [DSX_CH3_VolResetPtr+1],a
     ld      [DSX_CH4_VolResetPtr+1],a
+    if      ENABLE_YMZ284
+    ld      [DSX_CH5_VolResetPtr+1],a
+    ld      [DSX_CH6_VolResetPtr+1],a
+    ld      [DSX_CH7_VolResetPtr+1],a
+    endc
     ld      [DSX_CH1_PitchResetPtr+1],a
     ld      [DSX_CH2_PitchResetPtr+1],a
     ld      [DSX_CH3_PitchResetPtr+1],a
+    if      ENABLE_YMZ284
+    ld      [DSX_CH5_PitchResetPtr+1],a
+    ld      [DSX_CH6_PitchResetPtr+1],a
+    ld      [DSX_CH7_PitchResetPtr+1],a
+    endc
     
     ld      a,1
     ld      [DSX_MusicSpeedTick],a
@@ -482,6 +622,11 @@ DevSoundX_Init:
     ld      [DSX_CH1_ChannelVol],a
     ld      [DSX_CH2_ChannelVol],a
     ld      [DSX_CH4_ChannelVol],a
+    if      ENABLE_YMZ284
+    ld      [DSX_CH5_ChannelVol],a
+    ld      [DSX_CH6_ChannelVol],a
+    ld      [DSX_CH7_ChannelVol],a
+    endc
     
 	; set frequency table pointer
     ld      a,low(DSX_FreqTable)
@@ -1917,7 +2062,6 @@ DSX_Compare16:
 ; ================
 
 ; standard frequency table (A=440)
-DSX_FreqTableA440:
 DSX_FreqTable:
 ;        C-x  C#x  D-x  D#x  E-x  F-x  F#x  G-x  G#x  A-x  A#x  B-x
     dw  $02c,$09d,$107,$16b,$1c9,$223,$277,$2c7,$312,$358,$39b,$3da ; octave 1
@@ -1928,18 +2072,19 @@ DSX_FreqTable:
     dw  $7c1,$7c5,$7c8,$7cb,$7ce,$7d1,$7d4,$7d6,$7d9,$7db,$7dd,$7df ; octave 6
     dw  $7e1,$7e2,$7e4,$7e6,$7e7,$7e9,$7ea,$7eb,$7ec,$7ed,$7ee,$7ef ; octave 7
     dw  $7f0,$7f1,$7f2,$7f3,$7f4,$7f4,$7f5,$7f6,$7f6,$7f7,$7f7,$7f8 ; octave 8
-; alternate frequency table (A=432)
-DSX_FreqTableA432:
-;        C-x  C#x  D-x  D#x  E-x  F-x  F#x  G-x  G#x  A-x  A#x  B-x
-;   dw  $007,$079,$0e6,$14c,$1ac,$207,$25d,$2ae,$2fa,$342,$386,$3c7 ; octave 1
-;   dw  $403,$43d,$473,$4a6,$4d6,$503,$52e,$557,$57d,$5a1,$5c3,$5e3 ; octave 2
-;   dw  $602,$61e,$639,$653,$66b,$682,$697,$6ab,$6bf,$6d1,$6e2,$6f2 ; octave 3
-;   dw  $701,$70f,$71d,$729,$735,$741,$74c,$756,$75f,$768,$771,$779 ; octave 4
-;   dw  $780,$788,$78e,$795,$79b,$7a0,$7a6,$7ab,$7b0,$7b4,$7b8,$7bc ; octave 5
-;   dw  $7c0,$7c4,$7c7,$7ca,$7cd,$7d0,$7d3,$7d5,$7d8,$7da,$7dc,$7de ; octave 6
-;   dw  $7e0,$7e2,$7e4,$7e5,$7e7,$7e8,$7e9,$7eb,$7ec,$7ed,$7ee,$7ef ; octave 7
-;   dw  $7f0,$7f1,$7f2,$7f3,$7f3,$7f4,$7f5,$7f5,$7f6,$7f7,$7f7,$7f8 ; octave 8
 
+if  ENABLE_YMZ284
+DSX_FreqTableYM:
+;        C-x  C#x  D-x  D#x  E-x  F-x  F#x  G-x  G#x  A-x  A#x  B-x
+    dw  $fa8,$ec7,$df3,$d2a,$c6d,$bbb,$b12,$a73,$9dd,$94f,$8c9,$84b ; octave 0
+    dw  $7d4,$763,$6f9,$695,$637,$5dd,$589,$539,$4ee,$4a8,$465,$426 ; octave 1
+    dw  $3ea,$3b2,$37d,$34b,$31b,$2ef,$2c5,$29d,$277,$254,$232,$213 ; octave 2
+    dw  $1f5,$1d9,$1be,$1a5,$18e,$177,$162,$14e,$13c,$12a,$119,$109 ; octave 3
+    dw  $0fa,$0ec,$0df,$0d3,$0c7,$0bc,$0b1,$0a7,$09e,$095,$08d,$085 ; octave 4
+    dw  $07d,$076,$070,$069,$063,$05e,$059,$054,$04f,$04a,$046,$042 ; octave 5
+    dw  $03f,$03b,$038,$035,$032,$02f,$02c,$02a,$027,$025,$023,$021 ; octave 6
+    dw  $01f,$01e,$01c,$01a,$019,$017,$016,$015,$014,$013,$012,$011 ; octave 7
+endc
 
 DSX_NoiseTable:
     db  $a4
