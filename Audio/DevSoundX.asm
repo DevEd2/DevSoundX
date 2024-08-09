@@ -37,7 +37,7 @@ def rYM2FreqHi      = $3    ; ----AAAA
 def rYM3FreqLo      = $4    ; AAAAAAAA
 def rYM3FreqHi      = $5    ; ----AAAA
 def rYMNoiseFreq    = $6    ; ---AAAAA  
-def rYMMixing       = $7    ; --AAABBB  A = noise on for 3,2,1  B = tone on for 3,2,1
+def rYMMixer        = $7    ; --AAABBB  A = noise on for 3,2,1  B = tone on for 3,2,1
 def rYM1Vol         = $8    ; ---ABBBB  A = use envelope  B = level
 def rYM2Vol         = $9    ; ---ABBBB  A = use envelope  B = level
 def rYM3Vol         = $A    ; ---ABBBB  A = use envelope  B = level
@@ -65,12 +65,15 @@ def YM_TONE_ON      = YM1_TONE_ON | YM2_TONE_ON | YM3_TONE_ON
 def YM_NOISE_OFF    = YM1_NOISE_OFF | YM2_NOISE_OFF | YM3_NOISE_OFF
 def YM_NOISE_ON     = YM1_NOISE_ON | YM2_NOISE_ON | YM3_NOISE_ON
 
-def YM1_ENV_OFF     = %00000000
-def YM1_ENV_ON      = %00010000
-def YM2_ENV_OFF     = YM1_ENV_OFF << 1
-def YM2_ENV_ON      = YM1_ENV_ON << 1
-def YM3_ENV_OFF     = YM1_ENV_OFF << 2
-def YM3_ENV_ON      = YM1_ENV_ON << 2
+def YM_ENV_OFF      = %00000000
+def YM_ENV_ON       = %00010000
+def YM1_ENV_OFF     = YM_ENV_OFF << 0
+def YM1_ENV_ON      = YM_ENV_ON << 0
+def YM2_ENV_OFF     = YM_ENV_OFF << 1
+def YM2_ENV_ON      = YM_ENV_ON << 1
+def YM3_ENV_OFF     = YM_ENV_OFF << 2
+def YM3_ENV_ON      = YM_ENV_ON << 2
+
 
 def YM_ENV_NONE     = %0000
 def YM_ENV_CONT     = %1000
@@ -155,8 +158,10 @@ DSX_CH\1_FirstNote:         db
 DSX_CH\1_CurrentWave:
 DSX_CH\1_NRX1:              db
 DSX_CH\1_CurrentNRX2:       db
+if (ENABLE_YMZ284 & (\1 < 5))
 DSX_CH\1_PreviousWave:
 DSX_CH\1_PreviousNRX2:      db
+endc
 DSX_CH\1_NRX3:              db
 DSX_CH\1_NRX4:              db
 DSX_CH\1_End:
@@ -167,7 +172,11 @@ DSX_RAMStart:
 DSX_MusicPlaying:       db
 DSX_GlobalTick:         db
 DSX_ChannelFlags:       db  ; upper 4 bits = sfx, lower 4 bits = music
+if  ENABLE_YMZ284
+def DSX_MusicMask           = %01111111
+else
 def DSX_MusicMask           = %00001111
+endc
 
 DSX_MusicTick:          db  ; increments by 1 each speed tick
 DSX_MusicSpeedTick:     db
@@ -440,7 +449,11 @@ DevSoundX_Init:
     dec     l
     ld      [hl],%11111111
     dec     l
+    if      ENABLE_YMZ284
+    ld      [hl],$ff
+    else
     ld      [hl],$77
+    endc
 
     if      ENABLE_YMZ284
     ; set YMZ284 power control
@@ -458,10 +471,10 @@ DevSoundX_Init:
     inc     a   ; a = rYM3Vol
     ld      [rYMAddr],a
     ld      [hl],0 | YM_ENV_OFF
-    ; set mixer mask to tone+noise off for all channels
+    ; set mixer mask to tone on + noise off for all channels
     ld      a,rYMMixer
     ld      [rYMAddr],a
-    ld      [hl],YM_TONE_OFF | YM_NOISE_OFF
+    ld      [hl],YM_TONE_ON | YM_NOISE_OFF
     ; clear envelope
     ld      a,rYMEnvShape
     ld      [rYMAddr],a
@@ -627,12 +640,6 @@ DevSoundX_Init:
     ld      [DSX_CH6_ChannelVol],a
     ld      [DSX_CH7_ChannelVol],a
     endc
-    
-	; set frequency table pointer
-    ld      a,low(DSX_FreqTable)
-    ld      hl,DSX_FreqTablePtr
-    ld      [hl+],a
-    ld      [hl],high(DSX_FreqTable)  
     ret
 
 ; ================
@@ -665,6 +672,22 @@ DevSoundX_PlaySong:
     ld      [DSX_CH4_SeqPtr],a
     ld      a,[hl]
     ld      [DSX_CH4_SeqPtr+1],a
+
+    if      ENABLE_YMZ284
+    ld      a,[hl+]
+    ld      [DSX_CH5_SeqPtr],a
+    ld      a,[hl]
+    ld      [DSX_CH5_SeqPtr+1],a
+
+    ld      [DSX_CH6_SeqPtr],a
+    ld      a,[hl]
+    ld      [DSX_CH6_SeqPtr+1],a
+
+    ld      [DSX_CH7_SeqPtr],a
+    ld      a,[hl]
+    ld      [DSX_CH7_SeqPtr+1],a
+    endc
+
 :   ld      a,DSX_MusicMask
     ld      [DSX_ChannelFlags],a
     xor     a
@@ -672,27 +695,57 @@ DevSoundX_PlaySong:
     ld      [DSX_CH2_Tick],a
     ld      [DSX_CH3_Tick],a
     ld      [DSX_CH4_Tick],a
+    if      ENABLE_YMZ284
+    ld      [DSX_CH5_Tick],a
+    ld      [DSX_CH6_Tick],a
+    ld      [DSX_CH7_Tick],a
+    endc
     ld      [DSX_MusicTick],a
     ld      [DSX_CH1_PitchMode],a
     ld      [DSX_CH2_PitchMode],a
     ld      [DSX_CH3_PitchMode],a
+    if      ENABLE_YMZ284
+    ld      [DSX_CH5_PitchMode],a
+    ld      [DSX_CH6_PitchMode],a
+    ld      [DSX_CH7_PitchMode],a
+    endc
     ld      [DSX_CH1_SlideOffset],a
     ld      [DSX_CH2_SlideOffset],a
     ld      [DSX_CH3_SlideOffset],a
+    if      ENABLE_YMZ284
+    ld      [DSX_CH5_SlideOffset],a
+    ld      [DSX_CH6_SlideOffset],a
+    ld      [DSX_CH7_SlideOffset],a
+    endc
     ld      [DSX_CH1_SlideTarget],a
     ld      [DSX_CH2_SlideTarget],a
     ld      [DSX_CH3_SlideTarget],a
+    if      ENABLE_YMZ284
+    ld      [DSX_CH5_SlideTarget],a
+    ld      [DSX_CH6_SlideTarget],a
+    ld      [DSX_CH7_SlideTarget],a
+    endc
     inc     a
     ld      [DSX_CH1_Timer],a
     ld      [DSX_CH2_Timer],a
     ld      [DSX_CH3_Timer],a
     ld      [DSX_CH4_Timer],a
+    if      ENABLE_YMZ284
+    ld      [DSX_CH5_Timer],a
+    ld      [DSX_CH6_Timer],a
+    ld      [DSX_CH7_Timer],a
+    endc
     ld      [DSX_MusicSpeedTick],a
     ld      [DSX_MusicPlaying],a
     ld      a,15
     ld      [DSX_CH1_ChannelVol],a
     ld      [DSX_CH2_ChannelVol],a
     ld      [DSX_CH4_ChannelVol],a
+    if      ENABLE_YMZ284
+    ld      [DSX_CH5_ChannelVol],a
+    ld      [DSX_CH6_ChannelVol],a
+    ld      [DSX_CH7_ChannelVol],a
+    endc
     ret
 
 ; ================
@@ -706,10 +759,12 @@ DevSoundX_StopMusic:
     ld      [DSX_MusicPlaying],a
     ld      [DSX_ChannelFlags],a
     ld      hl,DSX_MusicRAM
-    ld      b,sizeof_DSX_MusicRAM
-    xor     a
-:   ld      [hl+],a
-    dec     b
+    ld      bc,sizeof_DSX_MusicRAM
+:   xor     a
+    ld      [hl+],a
+    dec     bc
+    ld      a,b
+    or      c
     jr      nz,:-
     ld      [DSX_CH1_CurrentNRX2],a
     ld      [DSX_CH2_CurrentNRX2],a
@@ -802,6 +857,18 @@ DevSoundX_UpdateRegisters:
     ; ch4
     ld      hl,DSX_CH4_CurrentNRX2
     call    .donoise
+
+    if      ENABLE_YMZ284
+    ld      hl,DSX_CH5_CurrentNRX2
+    ld      c,0
+    call    .doym
+    ld      hl,DSX_CH6_CurrentNRX2
+    inc     c
+    call    .doym
+    ld      hl,DSX_CH7_CurrentNRX2
+    inc     c
+    call    .doym
+    endc
     
     pop     hl
     pop     de
@@ -970,6 +1037,38 @@ DevSoundX_UpdateRegisters:
     ldh     [rNR44],a
     ret
 
+if ENABLE_YMZ284
+; AY channel update routine
+; Currently a work in progress
+; c = channel
+.doym
+    push    bc
+    ; TODO: envelope + noise settings
+    ld      a,[hl+] ; dummy read
+    ; volume
+    ld      a,rYM1Vol
+    add     c
+    ld      [rYMAddr],a
+    ld      a,[hl+]
+    ld      [rYMData],a ; volume scaling not supported for now
+    ; frequency
+    ld      a,rYM1FreqLo
+    add     c
+    add     c
+    ld      [rYMData],a
+    inc     a
+    ld      b,a
+    ld      a,[hl+]
+    ld      [rYMData],a
+    ld      a,b
+    ld      [rYMAddr],a
+    ld      a,[hl]
+    ld      [rYMData],a
+    pop     bc
+    ret
+endc
+
+
 ; ================
 
 macro DevSoundX_UpdateChannel
@@ -978,6 +1077,10 @@ DevSoundX_UpdateChannel\1:
     bit     \1-1,a
     ret     z
 
+    if      \1 > 4
+    ld      b,b
+    endc
+    
     push    af
     ld      e,a
     
@@ -1014,6 +1117,7 @@ DevSoundX_UpdateChannel\1:
     ld      a,d
     ld      [DSX_CH\1_Note],a
     
+    if      \1 != 4
     ld      a,[DSX_CH\1_FirstNote]
     and     a
     ld      a,[DSX_CH\1_Note]
@@ -1043,6 +1147,7 @@ DevSoundX_UpdateChannel\1:
     and     $3
     ld      [DSX_CH\1_EchoPos],a
     pop     hl
+    endc
     ld      a,[hl+]
     ld      [DSX_CH\1_Timer],a
     if \1 != 4 ; don't reset tables if portamento is active
@@ -1099,7 +1204,11 @@ DevSoundX_UpdateChannel\1:
         ld      a,c
         ld      [DSX_CH\1_NoteTarget],a
         ld      b,0
-        ld      hl,DSX_FreqTablePtr
+        if      (\1 > 4 & ENABLE_YMZ284)
+        ld      hl,DSX_FreqTableYM
+        else
+        ld      hl,DSX_FreqTable
+        endc
         ld      a,[hl+]
         ld      h,[hl]
         ld      l,a
@@ -1505,10 +1614,16 @@ def NUM_COMMANDS = (@ - .cmdtable) / 2
     pop     af
     ret
 endm
+
     DevSoundX_UpdateChannel 1
     DevSoundX_UpdateChannel 2
     DevSoundX_UpdateChannel 3
     DevSoundX_UpdateChannel 4
+    if ENABLE_YMZ284
+    DevSoundX_UpdateChannel 5
+    DevSoundX_UpdateChannel 6
+    DevSoundX_UpdateChannel 7
+    endc
 
 ; ========
 
@@ -1539,11 +1654,21 @@ DevSoundX_UpdateMusic:
 .odd
     ld      a,[DSX_MusicSpeed1]
 :   ld      [DSX_MusicSpeedTick],a
+    if      ENABLE_YMZ284
+    call    DevSoundX_UpdateChannel1
+    call    DevSoundX_UpdateChannel2
+    call    DevSoundX_UpdateChannel3
+    call    DevSoundX_UpdateChannel4
+    call    DevSoundX_UpdateChannel5
+    call    DevSoundX_UpdateChannel6
+    jp      DevSoundX_UpdateChannel7
+    else
     call    DevSoundX_UpdateChannel1
     call    DevSoundX_UpdateChannel2
     call    DevSoundX_UpdateChannel3
     jp      DevSoundX_UpdateChannel4
-    
+    endc
+
 ; ================
     
 macro DSX_UpdateTables
@@ -1571,7 +1696,7 @@ DSX_UpdateTables_CH\1:
     jr      z,.waitvol
 .setvol
     ; sanitize
-    if (\1%4) != 3
+    if (ENABLE_YMZ284 & (((\1%4) != 3) & (\1 < 5)))
         and     $8f
     endc
     ld      [DSX_CH\1_CurrentNRX2],a
@@ -1651,7 +1776,7 @@ DSX_UpdateTables_CH\1:
     jr      z,.waitpulse
 .setpulse
     ; sanitize
-    if (\1 == 1) | (\1 == 2)
+    if ((\1 == 1) | (\1 == 2)) & (ENABLE_YMZ284 & (\1 < 5))
         rrca
         rrca
         and     %11000000
@@ -1727,6 +1852,7 @@ endc
     sub     $3f ; = $00~-$3f
 :   ld      c,a
     ; check for echo
+    if \1 != 4
     ld      a,[DSX_CH\1_CurrentNRX2]
     bit     7,a
     jr      z,.noecho
@@ -1742,6 +1868,7 @@ endc
     jr      .addtranspose
 .noecho
     ld      a,[DSX_CH\1_Note]
+    endc
 .addtranspose
     if      \1 != 4
         ld      b,a
@@ -1752,7 +1879,11 @@ endc
 .gotnote
     if \1 != 4
         ld      c,a
-        ld      hl,DSX_FreqTablePtr
+        if      ENABLE_YMZ284 & (\1 > 4)
+        ld      hl,DSX_FreqTableYM
+        else
+        ld      hl,DSX_FreqTable
+        endc
         ld      a,[hl+]
         ld      h,[hl]
         ld      l,a
@@ -1805,6 +1936,11 @@ endm
     DSX_UpdateTables    2
     DSX_UpdateTables    3
     DSX_UpdateTables    4
+    if ENABLE_YMZ284
+    DSX_UpdateTables    5
+    DSX_UpdateTables    6
+    DSX_UpdateTables    7
+    endc
 
 ; Update routine for macros.
 ; INPUT:    (none)
@@ -1814,10 +1950,20 @@ DevSoundX_UpdateTables:
     ld      a,[DSX_MusicPlaying]
     and     a
     ret     z
+    if      ENABLE_YMZ284
+    call    DSX_UpdateTables_CH1
+    call    DSX_UpdateTables_CH2
+    call    DSX_UpdateTables_CH3
+    call    DSX_UpdateTables_CH4
+    call    DSX_UpdateTables_CH5
+    call    DSX_UpdateTables_CH6
+    jp      DSX_UpdateTables_CH7
+    else
     call    DSX_UpdateTables_CH1
     call    DSX_UpdateTables_CH2
     call    DSX_UpdateTables_CH3
     jp      DSX_UpdateTables_CH4
+    endc
 
 ; ================
 
@@ -1997,6 +2143,11 @@ endm
     DSX_UpdateEffects   2
     DSX_UpdateEffects   3
     DSX_UpdateEffects   4
+    if ENABLE_YMZ284
+    DSX_UpdateEffects   5
+    DSX_UpdateEffects   6
+    DSX_UpdateEffects   7
+    endc
 
 ; Update routine for pitch bends + other effects.
 ; INPUT:    (none)
@@ -2006,10 +2157,20 @@ DevSoundX_UpdateEffects:
     ld      a,[DSX_MusicPlaying]
     and     a
     ret     z
+    if      ENABLE_YMZ284
+    call    DSX_UpdateEffects_CH1
+    call    DSX_UpdateEffects_CH2
+    call    DSX_UpdateEffects_CH3
+    call    DSX_UpdateEffects_CH4
+    call    DSX_UpdateEffects_CH5
+    call    DSX_UpdateEffects_CH6
+    jp      DSX_UpdateEffects_CH7
+    else
     call    DSX_UpdateEffects_CH1
     call    DSX_UpdateEffects_CH2
     call    DSX_UpdateEffects_CH3
     jp      DSX_UpdateEffects_CH4
+    endc
 
 ; ================
 

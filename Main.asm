@@ -398,7 +398,8 @@ ProgramStart:
     ld      b,bank(DevSoundX)
     rst     _Bankswitch
     xor     a
-:   call    DSX_Init
+:   ld      b,b
+    call    DSX_Init
     ld      hl,DSX_TestSong
     call    DSX_PlaySong
     
