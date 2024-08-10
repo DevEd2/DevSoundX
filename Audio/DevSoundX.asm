@@ -185,8 +185,6 @@ DSX_MusicSpeed2:        db  ; used on even speed ticks
 
 DSX_GlobalTranspose:    db
 
-DSX_FreqTablePtr:       dw
-
 DSX_MusicRAM:
     DSX_ChannelStruct       1
     DSX_ChannelStruct       2
@@ -670,21 +668,23 @@ DevSoundX_PlaySong:
     
     ld      a,[hl+]
     ld      [DSX_CH4_SeqPtr],a
-    ld      a,[hl]
+    ld      a,[hl+]
     ld      [DSX_CH4_SeqPtr+1],a
 
     if      ENABLE_YMZ284
     ld      a,[hl+]
     ld      [DSX_CH5_SeqPtr],a
-    ld      a,[hl]
+    ld      a,[hl+]
     ld      [DSX_CH5_SeqPtr+1],a
 
+    ld      a,[hl+]
     ld      [DSX_CH6_SeqPtr],a
-    ld      a,[hl]
+    ld      a,[hl+]
     ld      [DSX_CH6_SeqPtr+1],a
 
+    ld      a,[hl+]
     ld      [DSX_CH7_SeqPtr],a
-    ld      a,[hl]
+    ld      a,[hl+]
     ld      [DSX_CH7_SeqPtr+1],a
     endc
 
@@ -1076,11 +1076,7 @@ DevSoundX_UpdateChannel\1:
     ld      a,[DSX_ChannelFlags]
     bit     \1-1,a
     ret     z
-
-    if      \1 > 4
-    ld      b,b
-    endc
-    
+ 
     push    af
     ld      e,a
     
@@ -1204,14 +1200,11 @@ DevSoundX_UpdateChannel\1:
         ld      a,c
         ld      [DSX_CH\1_NoteTarget],a
         ld      b,0
-        if      (\1 > 4 & ENABLE_YMZ284)
+        if      ENABLE_YMZ284 & (\1 > 4)
         ld      hl,DSX_FreqTableYM
         else
         ld      hl,DSX_FreqTable
         endc
-        ld      a,[hl+]
-        ld      h,[hl]
-        ld      l,a
         add     hl,bc
         add     hl,bc
         ld      a,[hl+]
@@ -1884,9 +1877,6 @@ endc
         else
         ld      hl,DSX_FreqTable
         endc
-        ld      a,[hl+]
-        ld      h,[hl]
-        ld      l,a
         ld      b,0
         add     hl,bc
         add     hl,bc
@@ -2010,10 +2000,11 @@ DSX_UpdateEffects_CH\1:
     ld      a,[DSX_CH\1_Note]
     ld      c,a
     ld      b,0
-    ld      hl,DSX_FreqTablePtr
-    ld      a,[hl+]
-    ld      h,[hl]
-    ld      l,a
+    if      ENABLE_YMZ284 & (\1 > 4)
+    ld      hl,DSX_FreqTableYM
+    else
+    ld      hl,DSX_FreqTable
+    endc
     add     hl,bc
     add     hl,bc
     ld      a,[hl+]

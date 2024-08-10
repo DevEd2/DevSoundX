@@ -5,6 +5,11 @@ DSX_TestSong:
     dw  DSX_DummyChannel
     dw  DSX_TestSequence3
     dw  DSX_TestSequence4
+    if  ENABLE_YMZ284
+    dw  DSX_DummyChannel
+    dw  DSX_DummyChannel
+    dw  DSX_DummyChannel
+    endc
 
 DSX_TestSequence1:
 :   sound_instrument DSX_TestInstrument
