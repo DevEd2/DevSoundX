@@ -859,13 +859,13 @@ DevSoundX_UpdateRegisters:
     call    .donoise
 
     if      ENABLE_YMZ284
-    ld      hl,DSX_CH5_CurrentNRX2
+    ld      hl,DSX_CH5_NRX1
     ld      c,0
     call    .doym
-    ld      hl,DSX_CH6_CurrentNRX2
+    ld      hl,DSX_CH6_NRX1
     inc     c
     call    .doym
-    ld      hl,DSX_CH7_CurrentNRX2
+    ld      hl,DSX_CH7_NRX1
     inc     c
     call    .doym
     endc
@@ -1052,10 +1052,10 @@ if ENABLE_YMZ284
     ld      a,[hl+]
     ld      [rYMData],a ; volume scaling not supported for now
     ; frequency
-    ld      a,rYM1FreqLo
-    add     c
-    add     c
-    ld      [rYMData],a
+    ;ld      a,rYM1FreqLo
+    ld      a,c
+    add     a
+    ld      [rYMAddr],a
     inc     a
     ld      b,a
     ld      a,[hl+]

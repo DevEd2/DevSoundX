@@ -4,11 +4,11 @@ DSX_TestSong:
 ;   dw  DSX_TestSequence2
     dw  DSX_DummyChannel
     dw  DSX_TestSequence3
-    dw  DSX_TestSequence4
+    dw  DSX_DummyChannel
     if  ENABLE_YMZ284
-    dw  DSX_DummyChannel
-    dw  DSX_DummyChannel
-    dw  DSX_DummyChannel
+    dw  DSX_TestSequence5
+    dw  DSX_TestSequence6
+    dw  DSX_TestSequence7
     endc
 
 DSX_TestSequence1:
@@ -88,16 +88,25 @@ DSX_TestSequence3:
     sound_sample TestSample,128
     sound_end
 
-DSX_TestSequence4:
+DSX_TestSequence5:
     rest 64
-    sound_instrument DSX_TestInstrumentNoise1
-    for n,45
-        db n,2
-    endr
-    sound_instrument DSX_TestInstrumentNoise2
-    for n,45
-        db n,2
-    endr
+    sound_instrument DSX_TestInstrumentYM
+    note C_,5, 12
+    note F_,5, 12
+    note B_,5, 8
+    sound_end
+
+DSX_TestSequence6:
+    rest 68
+    note D_,5, 12
+    note G_,5, 12
+    note C_,6, 4
+    sound_end
+
+DSX_TestSequence7:
+    rest 72
+    note E_,5, 12
+    note A_,5, 12
     sound_end
 
 ; ================================================================
@@ -152,6 +161,13 @@ DSX_TestInstrumentNoise2:
     dw  DSX_DummyTable
     dw  0,0,0,0
 
+DSX_TestInstrumentYM:
+    dw  DSX_TestYMVolSequence
+    dw  DSX_DummyTable
+    dw  DSX_DummyTable
+    dw  DSX_TestPitchSequence
+    dw  0,0,0,0
+
 DSX_TestVolSequence:
     db  15,14,13,12,11,10,9,8,seq_end
 
@@ -170,6 +186,9 @@ DSX_TestVolSequenceHold:
 DSX_TestWaveVolSequence:
     db  $20,$20,$20,$20,$20,$20,$20,$20,$80|$60,seq_end
 
+DSX_TestYMVolSequence:
+    db  15,15,15,14,14,14,13,13,13,12,12,12,11,11,11,10,10,10,9,9,9,8,8,8,7,7,7,6,6,6,5,5,5,4,4,4,3,3,3,2,2,2,1,1,1,0,seq_end
+    
 DSX_TestPulseSequence:
     db  0,1,1,1,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,seq_end
 
