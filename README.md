@@ -28,4 +28,4 @@ Just copy the `Audio` folder to your project's root directory and include `Audio
 4. If you need to stop music playback, call `DSX_StopMusic`.
 
 ## Making music for DevSound X
-Unfortunately, there are currently no tools to work with DevSound X, so you'll need to program songs in manually. This repository includes a test song as an example (see `Audio/Music/TestSong.asm`), and there is some documentation available in `Docs/Format.txt`.
+Unfortunately, there are currently no tools to work with DevSound X, so you'll need to program songs in manually. This repository includes (https://github.com/DevEd2/DevSoundX/blob/main/Audio/Music/TestSong.asm)[a test song] as an example, and there is some documentation available (https://github.com/DevEd2/DevSoundX/blob/main/Docs/Format.txt)[here].
