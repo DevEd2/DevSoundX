@@ -1,6 +1,15 @@
 THE HASTILY PUT-TOGETHER DEVSOUND X MUSIC FORMAT SPEC
-Version 0.1
+Version 0.2
 by DevEd
+
+=================================================================
+CHANGELOG
+
+Version 0.2 - 12/22/2024
+- Corrected some minor errata in section 3.
+
+Version 0.1 - 02/14/2023
+- Initial release.
 
 =================================================================
 
@@ -60,9 +69,9 @@ giving an echo effect.
 For arpeggio macros, each macro value is interpreted as follows:
 - If the value is from 0-63 ($00-$3f), it will be added to the base
   note.
-- If the value is from 64-127 ($00-$7f), the value is subtracted by
+- If the value is from 64-127 ($40-$7f), the value is subtracted by
   64 and then subtracted from the base note.
-- If the value is from 128-253 ($80-$fd), the value overrides the
+- If the value is from 128-252 ($80-$fc), the value overrides the
   base note. This is equivalent to Deflemask's fixed arpeggio option.
 
 For sound type macros, each macro value is interpreted as follows:
@@ -91,7 +100,7 @@ command byte). Any data after the command will be ignored. For pitch
 macros, the loop point is instead denoted with the pitch_loop ($80)
 command.
 
-For all macro types except pitch, command seq_wait ($FE) will allow
+For all macro types except pitch, command seq_wait ($FD) will allow
 you to specify a number of engine ticks to wait before the next macro
 value is read. The byte immediately following the command byte is used
 as the delay. After this command completes, the next macro value will
